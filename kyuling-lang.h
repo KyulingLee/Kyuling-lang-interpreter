@@ -1,3 +1,8 @@
+/*
+ * 생성자: Kyuling Lee
+ * 메인 헤더
+ */
+
 #include <iostream>
 #include <string>
 #include <vector>

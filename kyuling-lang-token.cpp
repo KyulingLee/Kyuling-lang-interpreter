@@ -1,3 +1,8 @@
+/*
+ * 생성자: Kyuling Lee
+ * 토큰 처리를 진행하는 소스코드 파일
+ */
+
 #include "kyuling-lang.h"
 
 
