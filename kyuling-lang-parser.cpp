@@ -557,7 +557,7 @@ void setCode_EofLine()
   if (token.kind != EofLine) 
   {
     cout << "잘못된 기술입니다. : " << token.text << endl;
-    //err_exit("�߸��� ����Դϴ�: ", token.text);
+    //err_exit("잘못된 기술입니다. : ", token.text);
   }
 
   //변환한 내부 코드를 저장한다
