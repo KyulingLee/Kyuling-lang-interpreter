@@ -82,11 +82,11 @@ int enter(SymTbl& tb, SymKind kind)
     //로컬일 경우
     if (isLocal) 
     { 
-        n = Ltable.size(); Ltable.push_back(tb); 
+        n = LocalTable.size(); LocalTable.push_back(tb); 
     }           
     else
     { 
-        n = Gtable.size(); Gtable.push_back(tb);
+        n = GlobalTable.size(); GlobalTable.push_back(tb);
     }         
 
     //등록한 위치를 리턴한다.
@@ -97,7 +97,7 @@ int enter(SymTbl& tb, SymKind kind)
 //그냥 로컬 테이블의 사이즈 다음부터 처리하자.
 void set_startLtable() 
 {
-    startLtable = Ltable.size();
+    startLtable = LocalTable.size();
 }
 
 //로컬쪽의 이름이면 true를 넘긴다
@@ -123,24 +123,24 @@ int searchName(const string& s, int mode)
     {
         //글로벌 심벌 테이블 검색
         case 'G': 										
-            for (n=0; n<(int)Gtable.size(); n++) 
+            for (n=0; n<(int)GlobalTable.size(); n++) 
             {
-                if (Gtable[n].name == s) return n;
+                if (GlobalTable[n].name == s) return n;
             }
             break;
         
         //로컬 심볼 테이블 검색
         case 'L':  											
-            for (n=startLtable; n<(int)Ltable.size(); n++) 
+            for (n=startLtable; n<(int)LocalTable.size(); n++) 
             {
-                if (Ltable[n].name == s) return n;
+                if (LocalTable[n].name == s) return n;
             }
             break;
         
         //함수명을 검색
         case 'F':  													 
             n = searchName(s, 'G');
-            if (n != -1 && Gtable[n].nmKind==fncId) 
+            if (n != -1 && GlobalTable[n].nmKind==fncId) 
             return n;
             break;
         
@@ -165,7 +165,7 @@ int searchName(const string& s, int mode)
 vector<SymTbl>::iterator tableP(const CodeSet& cd)
 {
     if (cd.kind == Lvar) 
-        return Ltable.begin() + cd.symNbr;           
-    return Gtable.begin() + cd.symNbr;               
+        return LocalTable.begin() + cd.symNbr;           
+    return GlobalTable.begin() + cd.symNbr;               
 }
 

@@ -21,6 +21,11 @@ int get_lineNo();
 
 //심볼 테이블 처리용 소스코드
 //kyuling-lang-table.cpp
+int enter(SymTbl& tb, SymKind kind);
+void set_startLtable();
+bool is_localName(const string& name, SymKind kind);
+int searchName(const string& s, int mode);
+vector<SymTbl>::iterator tableP(const CodeSet& cd);
 
 //구문 분석용 소스코드
 //kyuling-lang-parser.cpp
