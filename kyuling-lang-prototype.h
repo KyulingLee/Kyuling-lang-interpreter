@@ -29,6 +29,29 @@ vector<SymTbl>::iterator tableP(const CodeSet& cd);
 
 //구문 분석용 소스코드
 //kyuling-lang-parser.cpp
+void init();
+void convert_to_internalCode(char *fname);
+void convert();
+void convert_block_set();
+void convert_block();
+void convert_rest();
+void convert_rest();
+void varDecl();
+void var_namechk(const Token& tk);
+void set_name();
+void set_aryLen();
+void fncDecl(); 
+void backPatch(int line, int n);
+void setCode(int cd);
+int setCode(int cd, int nbr);
+void setCode_rest();
+void setCode_End();
+void setCode_EofLine();
+void push_intercode();
+bool is_localScope();
 
-
-
+//프로그램을 위해 추가로 이용하는 소스코드
+//kyuling-lang-misc.cpp
+string dbl_to_s(double d);
+string error_message(const string& a, const string& b);
+void error_exit(Tobj a, Tobj b, Tobj c, Tobj d) 
