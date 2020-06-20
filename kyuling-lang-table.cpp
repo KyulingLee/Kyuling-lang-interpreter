@@ -38,7 +38,7 @@ int enter(SymTbl& tb, SymKind kind)
     if (kind!=varId && tb.name[0]=='$')  
     {   
         cout << "변수명 이외에서 $를 사용할 수 없습니다. : " << tb.name << endl;                     
-        //err_exit("변수명 이외에서 $를 사용할 수 없습니다. : ", tb.name);
+        error_exit("변수명 이외에서 $를 사용할 수 없습니다. : ", tb.name);
     }
     
     tb.nmKind = kind;
@@ -52,7 +52,7 @@ int enter(SymTbl& tb, SymKind kind)
     if (n != -1) 
     {
         cout << "변수 이름이 중복되었습니다. : " << tb.name << endl;
-        //err_exit("변수 이름이 중복되었습니다. : ", tb.name);
+        error_exit("or변수 이름이 중복되었습니다. : ", tb.name);
     }
 
     //주소를 설정한다.
@@ -149,7 +149,7 @@ int searchName(const string& s, int mode)
             if (searchName(s, 'F') != -1)
             {
                 cout << "함수명과 중복되었습니다. : " << s << endl;
-                //err_exit("함수명과 중복되었습니다. : ", s);
+                error_exit("or함수명과 중복되었습니다. : ", s);
             }
             if (s[0] == '$')     
                 return searchName(s, 'G');
