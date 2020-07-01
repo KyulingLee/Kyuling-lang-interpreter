@@ -1152,7 +1152,7 @@ CodeSet nextCode()
     if (*code_ptr == '\0') 
         return CodeSet(EofLine);
 
-    kd = (TokenKind)*UCHAR_P(code_ptr++);
+    kd = (TokenKind)*UCHAR_POINT(code_ptr++);
 
     //이런 거 땜에 앞단계에서 전처리를....ㅠㅠㅠㅠ
     switch (kd) 
@@ -1164,26 +1164,26 @@ CodeSet nextCode()
         case Elif: 
         case Else:
             //점프할 주소를 만들어서 리턴
-            jmpAdrs = *SHORT_P(code_ptr); 
-            code_ptr += SHORT_SIZ;
+            jmpAdrs = *SHORT_POINT(code_ptr); 
+            code_ptr += SHORT_SIZE;
             return CodeSet(kd, -1, jmpAdrs);    
         case String:
             //다음 테이블 주소 포인터를 만들어서 리턴
-            tblNbr = *SHORT_P(code_ptr); 
-            code_ptr += SHORT_SIZ;
+            tblNbr = *SHORT_POINT(code_ptr); 
+            code_ptr += SHORT_SIZE;
             return CodeSet(kd, strLITERAL[tblNbr].c_str());   
         case IntNum: 
         case DblNum:	
             //수치 리터럴값에 대한 포인터를 만들어 리턴
-            tblNbr = *SHORT_P(code_ptr); 
-            code_ptr += SHORT_SIZ;
+            tblNbr = *SHORT_POINT(code_ptr); 
+            code_ptr += SHORT_SIZE;
             return CodeSet(kd, nbrLITERAL[tblNbr]); 
         case Fcall: 
         case Gvar: 
         case Lvar:
             //함수 콜에 대한 주소 포인터를 만들어 리턴..
-            tblNbr = *SHORT_P(code_ptr); 
-            code_ptr += SHORT_SIZ;
+            tblNbr = *SHORT_POINT(code_ptr); 
+            code_ptr += SHORT_SIZE;
             return CodeSet(kd, tblNbr, -1);        
         default:              		
             // 부속 정보가 없는 코드셋이 만들어져서 리턴...

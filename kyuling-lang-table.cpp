@@ -82,11 +82,13 @@ int enter(SymbolTable& tb, SymbolKind kind)
     //로컬일 경우
     if (isLocal) 
     { 
-        n = LocalTable.size(); LocalTable.push_back(tb); 
+        n = LocalTable.size(); 
+        LocalTable.push_back(tb); 
     }           
     else
     { 
-        n = GlobalTable.size(); GlobalTable.push_back(tb);
+        n = GlobalTable.size(); 
+        GlobalTable.push_back(tb);
     }         
 
     //등록한 위치를 리턴한다.
@@ -125,7 +127,8 @@ int searchName(const string& s, int mode)
         case 'G': 										
             for (n=0; n<(int)GlobalTable.size(); n++) 
             {
-                if (GlobalTable[n].name == s) return n;
+                if (GlobalTable[n].name == s) 
+                    return n;
             }
             break;
         
@@ -133,7 +136,8 @@ int searchName(const string& s, int mode)
         case 'L':  											
             for (n=startLtable; n<(int)LocalTable.size(); n++) 
             {
-                if (LocalTable[n].name == s) return n;
+                if (LocalTable[n].name == s) 
+                    return n;
             }
             break;
         
@@ -141,7 +145,7 @@ int searchName(const string& s, int mode)
         case 'F':  													 
             n = searchName(s, 'G');
             if (n != -1 && GlobalTable[n].nmKind==fncId) 
-            return n;
+                return n;
             break;
         
         //변수명 검색

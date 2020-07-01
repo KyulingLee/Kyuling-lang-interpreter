@@ -16,7 +16,7 @@ char *token_p;
 //파일 종료인지 아닌지 확인하는 플래그
 bool endOfFile_Flag;
 //소스코드 읽어들일 곳                               
-char buf[LIN_SIZE+5]; 
+char buf[LINE_SIZE+5]; 
 //입력 스트림                      
 ifstream fin;                           
 
@@ -240,7 +240,7 @@ void nextLine()
         return;
     
     //한 행을 읽어낸다
-    fin.getline(buf, LIN_SIZE+5);                                
+    fin.getline(buf, LINE_SIZE+5);                                
     
     //파일의 끝일 경우
     if (fin.eof()) 
@@ -252,10 +252,10 @@ void nextLine()
         return;
     }
 
-    if (strlen(buf) > LIN_SIZE)
+    if (strlen(buf) > LINE_SIZE)
     {
-        cout << "프로그램은 1줄에 " << LIN_SIZE << "문자 이내로 작성해 주세요." <<endl;
-        errorExit("프로그램은 1줄에 ", LIN_SIZE, " 문자 이내로 작성해 주세요.");
+        cout << "프로그램은 1줄에 " << LINE_SIZE << "문자 이내로 작성해 주세요." <<endl;
+        errorExit("프로그램은 1줄에 ", LINE_SIZE, " 문자 이내로 작성해 주세요.");
     }
 
     if (++srcLineno > MAX_LINE)
