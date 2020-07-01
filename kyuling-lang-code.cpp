@@ -40,7 +40,7 @@ vector<string> strLITERAL;
 //수치 리터럴을 저장하는 백터
 vector<double> nbrLITERAL;                           
 //구문검사용 -> 검사 되면 참으로 바꿔서 처리함.
-bool syntaxChk_mode = false;                          
+bool syntaxCheck_mode = false;                          
 //글로벌한 심볼 테이블
 extern vector<SymbolTable> GlobalTable;                        
 
@@ -97,7 +97,7 @@ MyStack stk;
 //구문 검사를 진행
 void syntaxCheck() 
 {
-    syntaxChk_mode = true;
+    syntaxCheck_mode = true;
     for (Pc=1; Pc<(int)intercode.size(); Pc++) 
     {
         code = firstCode(Pc);
@@ -113,7 +113,7 @@ void syntaxCheck()
             case End:
             case Exit:
                 code = nextCode(); 
-                chk_EofLine();
+                checkEofLine();
                 break;
 
             case If: 
@@ -128,7 +128,7 @@ void syntaxCheck()
                 
                 code = nextCode();
                 //제어 변수의 주소
-                (void)get_memAdrs(code);
+                (void)getMemoryAddress(code);
                 //초기값
                 (void)getExpression('=', 0);
                 //최종값
@@ -141,25 +141,25 @@ void syntaxCheck()
                     (void)getExpression(Step,0);     
                 }
 
-                chk_EofLine();
+                checkEofLine();
                 break;
             //이 함수는 대입이 없는 함수임.
             case Fcall:                    
-                fncCall_syntax(code.symNbr);
-                chk_EofLine();
+                functionCallSyntax(code.symNbr);
+                checkEofLine();
                 //따라서 별도의 반환을 안해도 됨
                 (void)stk.pop();           
                 break;
             case Print: 
             case Println:
-                sysFncExec_syntax(code.kind);
+                sysFunctionExecuteSyntax(code.kind);
                 break;
 
             //대입문들...
             case Gvar: 
             case Lvar:              
                 //좌변의 주소
-                (void)get_memAdrs(code); 
+                (void)getMemoryAddress(code); 
                 //우변의 식의 값
                 (void)getExpression('=', EofLine);           
                 break;
@@ -177,7 +177,7 @@ void syntaxCheck()
                 {
                     (void)getExpression('?', 0);
                 }
-                chk_EofLine();
+                checkEofLine();
                 break;
         
             case Break:
@@ -187,18 +187,18 @@ void syntaxCheck()
                 {
                     (void)getExpression('?', 0);
                 }
-                chk_EofLine();
+                checkEofLine();
                 break;
         
             case EofLine:
                 break;
             default:
-                cout << "잘못된 서술입니다.: " << kind_to_s(code.kind) << endl; 
-                errorExit("잘못된 서술입니다: ", kind_to_s(code.kind));
+                cout << "잘못된 서술입니다.: " << kindToString(code.kind) << endl; 
+                errorExit("잘못된 서술입니다: ", kindToString(code.kind));
         }
     }
 
-    syntaxChk_mode = false;
+    syntaxCheck_mode = false;
 }
 
 //시작행의 프로그램 카운터 설정
@@ -254,7 +254,7 @@ void statement()
     
     //if문일 때의 끝을 지정한다.
     if (code.kind == If ) 
-        end_line = endline_of_If(Pc); 
+        end_line = endlineOfIf(Pc); 
         
     switch (code.kind) 
     {
@@ -333,12 +333,12 @@ void statement()
             //그래서 코드 구조가 while보다 좀 더 복잡하다.
             save = nextCode();
             //제어 변수의 주소를 구한다.
-            varAdrs = get_memAdrs(save);     
+            varAdrs = getMemoryAddress(save);     
 
             //초기값 설정
             expression('=', 0);
             //형을 확정한다.
-            set_dtTyp(save, DBL_T);
+            setdtType(save, DBL_T);
             //초기값을 설정한다.
             Dmem.set(varAdrs, stk.pop());
             
@@ -406,17 +406,17 @@ void statement()
         //출력문일 경우
         case Print: 
         case Println:
-            sysFncExec(code.kind);
+            sysfunctionExecute(code.kind);
             ++Pc;
             break;
         
         //대입문일 경우
         case Gvar: 
         case Lvar:     
-            varAdrs = get_memAdrs(code);
+            varAdrs = getMemoryAddress(code);
             expression('=', 0);
             //대입할 때의 형을 확정한다.
-            set_dtTyp(save, DBL_T);     
+            setdtType(save, DBL_T);     
             Dmem.set(varAdrs, stk.pop());
             ++Pc;
             break;
@@ -433,7 +433,7 @@ void statement()
             }
 
             //?가 있을 경우에 처리를 진행한다.
-            post_if_set(a);          
+            postIfSet(a);          
             
             //리턴 플래그가 참일 경우
             //리턴값을 던진다.
@@ -451,7 +451,7 @@ void statement()
         case Break:
             code = nextCode();
             //?가 있을 경우에 처리를 해준다.
-            post_if_set(break_Flag);         
+            postIfSet(break_Flag);         
             if (!break_Flag) 
                 ++Pc;
             break;
@@ -471,8 +471,8 @@ void statement()
 
         //그 외 -> 전부 오류임.
         default:
-            cout << "잘못된 서술입니다: " << kind_to_s(code.kind) << endl;
-            errorExit("잘못된 서술입니다: ", kind_to_s(code.kind));
+            cout << "잘못된 서술입니다: " << kindToString(code.kind) << endl;
+            errorExit("잘못된 서술입니다: ", kindToString(code.kind));
     }
 }
 
@@ -509,12 +509,12 @@ void expression(int kind1, int kind2)
 {
 
   if (kind1 != 0) 
-    code = chk_nextCode(code, kind1);
+    code = checkNextCode(code, kind1);
   
   expression();
   
   if (kind2 != 0) 
-    code = chk_nextCode(code, kind2);
+    code = checkNextCode(code, kind2);
 }
 
 //일반적인 식 처리를 진행 - 인수 없음
@@ -541,7 +541,7 @@ void term(int n)
         code = nextCode(); 
         term(n+1);
         //구문 체크를 하는 모드일 경우
-        if (syntaxChk_mode) 
+        if (syntaxCheck_mode) 
         {
             stk.pop(); 
             stk.pop(); 
@@ -558,7 +558,7 @@ void factor()
     TokenKind kd = code.kind;
 
     //구문 체크 처리를 한다.
-    if (syntaxChk_mode) 
+    if (syntaxCheck_mode) 
     {                                          
         //구문의 토큰 종류 처리
         switch (kd) 
@@ -581,22 +581,22 @@ void factor()
                 break;
             case Gvar: 
             case Lvar:
-                (void)get_memAdrs(code); 
+                (void)getMemoryAddress(code); 
                 stk.push(1.0);
                 break;
             case Toint: 
             case Input:
-                sysFncExec_syntax(kd);
+                sysFunctionExecuteSyntax(kd);
                 break;
             case Fcall:
-                fncCall_syntax(code.symNbr);
+                functionCallSyntax(code.symNbr);
                 break;
             case EofLine:
                 cout << "식이 올바르지 않습니다." << endl;
                 errorExit("식이 올바르지 않습니다.");
             default:
-                cout << "식 오류: " << kind_to_s(code) << endl;
-                errorExit("식 오류:", kind_to_s(code));         
+                cout << "식 오류: " << kindToString(code) << endl;
+                errorExit("식 오류:", kindToString(code));         
         }
 
         return;
@@ -634,12 +634,12 @@ void factor()
         case Lvar:
             //값 설정을 마친 변수인가 확인
             chk_dtTyp(code);            
-            stk.push(Dmem.get(get_memAdrs(code)));
+            stk.push(Dmem.get(getMemoryAddress(code)));
             break;
         
         case Toint: 
         case Input:
-            sysFncExec(kd);
+            sysfunctionExecute(kd);
             break;
         
         case Fcall:
@@ -776,7 +776,7 @@ void functionCallSyntax(int fncNbr)
     code = nextCode(); 
 
     //함수명 뒤의 (를 체크
-    code = chk_nextCode(code, '(');
+    code = checkNextCode(code, '(');
 
     //인수가 있을 경우
     if (code.kind != ')') 
@@ -793,7 +793,7 @@ void functionCallSyntax(int fncNbr)
         }
     }
     //)가 나오니 넘기고 처리
-    code = chk_nextCode(code, ')'); 
+    code = checkNextCode(code, ')'); 
 
     //인수 갯수를 검사
     if (argCt != GlobalTable[fncNbr].args)           
@@ -894,9 +894,9 @@ void functionExec(int fncNbr)
         for (;; code=nextCode()) 
         {
             //대입 시 형을 확정함
-            set_dtTyp(code, DBL_T);
+            setdtType(code, DBL_T);
             //실제 인수 값 저장
-            Dmem.set(get_memAdrs(code), stk.pop());  
+            Dmem.set(getMemoryAddress(code), stk.pop());  
 
             //인수 처리 종료
             if (code.kind != ',') 
@@ -935,8 +935,8 @@ void systemFunctionExecSyntax(TokenKind kd)
             break;
         case Input:
             code = nextCode();
-            code = chk_nextCode(code, '(');
-            code = chk_nextCode(code, ')');
+            code = checkNextCode(code, '(');
+            code = checkNextCode(code, ')');
             //적당한 값을 넣어준다.
             stk.push(1.0);          
             reak;
@@ -957,7 +957,7 @@ void systemFunctionExecSyntax(TokenKind kd)
             //단, 앞에것도 실행은 해야 하니 while이 뒤에 있음. 
             while (code.kind == ',');              
 
-            chk_EofLine();
+            checkEofLine();
 
             break;
     }
@@ -1025,8 +1025,8 @@ int getMemoryAddress(const CodeSet& cd)
     int adr=0, index, len;
     double d;
 
-    adr = get_topAdrs(cd);
-    len = tableP(cd)->aryLen;
+    adr = getTopAddress(cd);
+    len = tablePointer(cd)->aryLen;
     code = nextCode();
     //비배열 변수 -> 그냥 주소 반환
     if (len == 0) 
@@ -1041,7 +1041,7 @@ int getMemoryAddress(const CodeSet& cd)
         errorExit("첨자는 끝수가 없는 수치로 지정해 주세요.");
     }
     //구문 검사 모드 -> 그냥 주소 반환
-    if (syntaxChk_mode) 
+    if (syntaxCheck_mode) 
         return adr;                    
 
     index = (int) d;
@@ -1063,13 +1063,13 @@ int getTopAddress(const CodeSet& cd)
     {
         //글로벌 변수
         case Gvar: 
-            return tableP(cd)->adrs;			      
+            return tablePointer(cd)->adrs;			      
         //로컬 변수
         case Lvar: 
-            return tableP(cd)->adrs + baseReg;     
+            return tablePointer(cd)->adrs + baseReg;     
         default: 
-            cout << "변수명이 필요합니다.: " << kind_to_s(cd) << endl;
-            errorExit("변수명이 필요합니다.: ", kind_to_s(cd));
+            cout << "변수명이 필요합니다.: " << kindToString(cd) << endl;
+            errorExit("변수명이 필요합니다.: ", kindToString(cd));
             break;
     }
     return 0; // 이곳으론 오지 않는다
@@ -1099,8 +1099,8 @@ void checkEofLine()
 {
     if (code.kind != EofLine) 
     {
-        cout << "잘못된 서술입니다: " << kind_to_s(code) << endl;
-        errorExit("잘못된 서술입니다: ", kind_to_s(code));
+        cout << "잘못된 서술입니다: " << kindToString(code) << endl;
+        errorExit("잘못된 서술입니다: ", kindToString(code));
     }
 }
 
@@ -1117,18 +1117,18 @@ CodeSet checkNextCode(const CodeSet& cd, int kind2)
     {
         if (kind2   == EofLine) 
         {
-            cout << "잘못된 서술입니다: " << kind_to_s(cd) << endl;
-            errorExit("잘못된 서술입니다: ", kind_to_s(cd));
+            cout << "잘못된 서술입니다: " << kindToString(cd) << endl;
+            errorExit("잘못된 서술입니다: ", kindToString(cd));
         }
 
         if (cd.kind == EofLine) 
         {
-            cout << kind_to_s(kind2) << "가 필요합니다." << endl;
-            errorExit(kind_to_s(kind2), " 가 필요합니다.");
+            cout << kindToString(kind2) << "가 필요합니다." << endl;
+            errorExit(kindToString(kind2), " 가 필요합니다.");
         }
 
-        cout << kind_to_s(kind2) << "가(이)" << kind_to_s(cd) << "앞에 필요합니다." << endl;
-        errorExit(kind_to_s(kind2) + " 가(이) " + kind_to_s(cd) + " 앞에 필요합니다.");
+        cout << kindToString(kind2) << "가(이)" << kindToString(cd) << "앞에 필요합니다." << endl;
+        errorExit(kindToString(kind2) + " 가(이) " + kindToString(cd) + " 앞에 필요합니다.");
     }
 
     return nextCode();
@@ -1194,18 +1194,18 @@ CodeSet nextCode()
 //데이터 형을 확인하는 함수
 void checkDataType(const CodeSet& cd) 
 {
-    if (tableP(cd)->dtTyp == NON_T)
+    if (tablePointer(cd)->dtTyp == NON_T)
     {
-        cout << "초기화되지 않은 변수가 사용되었습니다.: " << kind_to_s(cd) << endl;
-        errorExit("초기화되지 않은 변수가 사용되었습니다.: ", kind_to_s(cd));
+        cout << "초기화되지 않은 변수가 사용되었습니다.: " << kindToString(cd) << endl;
+        errorExit("초기화되지 않은 변수가 사용되었습니다.: ", kindToString(cd));
     }
 }
 
 //데이터 형을 설정하는 함수
 void setDataType(const CodeSet& cd, char typ) 
 {
-    int memAdrs = get_topAdrs(cd);
-    vector<SymbolTable>::iterator p = tableP(cd);
+    int memAdrs = getTopAddress(cd);
+    vector<SymbolTable>::iterator p = tablePointer(cd);
 
     //이미 형이 결정되어 있으면 그냥 끝냄.
     if (p->dtTyp != NON_T) 
