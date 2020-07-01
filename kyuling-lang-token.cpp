@@ -208,7 +208,7 @@ Token nextToken()
             if (CH=='/' && C2=='/') 
                 return Token(EofLine);               
             
-            if (is_ope2(CH, C2)) 
+            if (isOpe2(CH, C2)) 
             { 
                 txt += CH; 
                 txt += C2; 
@@ -222,7 +222,7 @@ Token nextToken()
                 NEXT_CH(); 
             }
     }
-    kind = get_kind(txt);                                            
+    kind = getKind(txt);                                            
 
     //전혀 다른 토큰이 처리되었을 때
     if (kind == Others) 
@@ -269,7 +269,7 @@ void nextLine()
 }
 
 //문장의 다음 라인의 토큰을 받도록 처리한다.
-Token nextLine_token() 
+Token nextLineToken() 
 {
   nextLine();
   return nextToken();
@@ -290,7 +290,7 @@ void fileOpen(char *fname)
 }
 
 //토큰 종류별로 설정할 것이 있으면 설정한다.
-TokenKind get_kind(const string& s) 
+TokenKind getKind(const string& s) 
 {
     for (int i=0; KeyWordTable[i].keyKind != END_KeyList; i++) 
     {
@@ -311,7 +311,7 @@ TokenKind get_kind(const string& s)
 }
 
 //2 문자에 대해서 연산자일 경우 true 처리를 진행
-bool is_ope2(char c1, char c2)
+bool isOpe2(char c1, char c2)
 {
     char s[] = "    ";
     if (c1=='\0' || c2=='\0') 
@@ -322,25 +322,25 @@ bool is_ope2(char c1, char c2)
 }
 
 //획인하는 쪽의 토큰을 획들해서 넘긴다
-Token check_nextToken(const Token& tk, int kind2)
+Token checkNextToken(const Token& tk, int kind2)
 {
     if (tk.kind != kind2) 
     {
-        cout << "에러: " << tk.text << ", " << kind_to_s(kind2) << endl;
-        errorExit(errorMessage(tk.text, kind_to_s(kind2)));
+        cout << "에러: " << tk.text << ", " << kindToString(kind2) << endl;
+        errorExit(errorMessage(tk.text, kindToString(kind2)));
     }
     return nextToken();
 }
 
 //토큰 포인터를 지정하는 함수
-void set_token_p(char *p) 
+void setTokenPointer(char *p) 
 {
     token_p = p;
 }
 
 //키워드 종류별 -> 문자별로 바꾸는 함수
 //키워드 테이블을 통해서 처리하는 방법
-string kind_to_s(int kd)
+string kindToString(int kd)
 {
     for (int i=0; ; i++) {
         if (KeyWordTable[i].keyKind == END_KeyList) 
@@ -353,7 +353,7 @@ string kind_to_s(int kd)
 
 //키워드 종류별 -> 문자별로 바꾸는 함수
 //코드셋을 통해서 처리하는 함수
-string kind_to_s(const CodeSet& cd) 
+string kindToString(const CodeSet& cd) 
 {
     switch (cd.kind) {
         case Lvar: 
@@ -372,11 +372,11 @@ string kind_to_s(const CodeSet& cd)
             return "";
     }
 
-    return kind_to_s(cd.kind);
+    return kindToString(cd.kind);
 }
 
 //읽기 또는 실행중에 라인 번호 확인
-int get_lineNo() 
+int getLineNo() 
 {
     extern int Pc;
 
