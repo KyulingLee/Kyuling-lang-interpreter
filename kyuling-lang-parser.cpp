@@ -33,7 +33,8 @@ bool fncDecl_Flag;
 bool explicit_Flag;                               
 
 //코내부 코드 생성작업을 위해 이용하는 버퍼
-char codebuf[LIN_SIZ+1], *codebuf_p;             
+char codebuf[LINE_SIZE+1];
+char *codebuf_p;             
 
 //변환을 마친 내부 코드를 벡터로 저장
 extern vector<char*> intercode;    
