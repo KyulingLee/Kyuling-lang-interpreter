@@ -22,7 +22,7 @@ int startLocalTable;
 int enter(SymbolTable& tb, SymbolKind kind) 
 {
     int n, mem_size;
-    bool isLocal = is_localName(tb.name, kind);
+    bool isLocal = isLocalName(tb.name, kind);
     //로컬 변수의 주소 관리하는 녀석
     extern int localAdrs;                              
     //가상머신의 메모리
@@ -95,13 +95,13 @@ int enter(SymbolTable& tb, SymbolKind kind)
 
 //로컬 심볼 테이블의 시작 위치를 리턴한다
 //그냥 로컬 테이블의 사이즈 다음부터 처리하자.
-void set_startLtable() 
+void setStartLocalTable() 
 {
     startLtable = LocalTable.size();
 }
 
 //로컬쪽의 이름이면 true를 넘긴다
-bool is_localName(const string& name, SymbolKind kind) 
+bool isLocalName(const string& name, SymbolKind kind) 
 {
     if (kind == paraId) 
         return true;
@@ -162,7 +162,7 @@ int searchName(const string& s, int mode)
 }
 
 //반복자를 획득한다
-vector<SymbolTable>::iterator tableP(const CodeSet& cd)
+vector<SymbolTable>::iterator tablePointer(const CodeSet& cd)
 {
     if (cd.kind == Lvar) 
         return LocalTable.begin() + cd.symNbr;           
