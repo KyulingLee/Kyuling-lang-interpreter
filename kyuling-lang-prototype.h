@@ -54,4 +54,37 @@ bool is_localScope();
 //kyuling-lang-misc.cpp
 string dbl_to_s(double d);
 string error_message(const string& a, const string& b);
-void error_exit(Tobj a, Tobj b, Tobj c, Tobj d) 
+void error_exit(Tobj a, Tobj b, Tobj c, Tobj d);
+
+//실제 소스코드 분석하고 처리하기 위해 이용하는 소스코드
+//kyuling-lang-code.cpp
+void syntaxCheck();
+void set_startPc(int n);
+void execute();
+void statement();
+void block();
+double get_expression(int kind1, int kind2);
+void expression(int kind1, int kind2);
+void expression();
+void term(int n);
+void factor();
+int opOrder(TknKind kd);
+void binaryExpr(TknKind op);
+void post_if_set(bool& flg);
+void fncCall_syntax(int fncNbr);
+void fncCall(int fncNbr);
+void fncExec(int fncNbr);
+void sysFncExec_syntax(TknKind kd);
+void sysFncExec(TknKind kd);
+int get_memAdrs(const CodeSet& cd);
+int get_topAdrs(const CodeSet& cd);
+int endline_of_If(int line);
+void chk_EofLine();
+TknKind lookCode(int line);
+CodeSet chk_nextCode(const CodeSet& cd, int kind2);
+CodeSet firstCode(int line);
+CodeSet nextCode();
+void chk_dtTyp(const CodeSet& cd);
+void set_dtTyp(const CodeSet& cd, char typ);
+int set_LITERAL(double d);
+int set_LITERAL(const string& s);

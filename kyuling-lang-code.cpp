@@ -28,11 +28,11 @@ char *code_ptr;
 double returnValue;                                        
 //제어를 위한 플래그들
 //브레이크문 제어
-bool break_Flg;
+bool break_Flag;
 //리턴문 제어
-bool return_Flg;
+bool return_Flag;
 //종료문 제어
-bool exit_Flg;                     
+bool exit_Flag;                     
 //가상메모리
 Mymemory Dmem;                                                    
 //문자열 리터럴을 저장하는 벡터
@@ -42,10 +42,11 @@ vector<double> nbrLITERAL;
 //구문검사용 -> 검사 되면 참으로 바꿔서 처리함.
 bool syntaxChk_mode = false;                          
 //글로벌한 심볼 테이블
-extern vector<SymTbl> Gtable;                        
+extern vector<SymTbl> GlobalTable;                        
 
 //stl에 있는 stack을 감싸서 처리하는 클래스
-class Mystack {                  
+class MyStack 
+{                  
     private: 
         stack<double> st;
 
@@ -91,9 +92,10 @@ class Mystack {
 
 //실제로 내 인터프리터가 이용할 스택
 //오퍼랜드를 가지고 꺼내는 녀석이다.
-Mystack stk;                        
+MyStack stk;                        
 
-void syntaxChk() /* 구문 검사 */
+//구문 검사를 진행
+void syntaxCheck() 
 {
     syntaxChk_mode = true;
     for (Pc=1; Pc<(int)intercode.size(); Pc++) 
@@ -101,10 +103,10 @@ void syntaxChk() /* 구문 검사 */
         code = firstCode(Pc);
         switch (code.kind) 
         {
-
+            //검사 완료
             case Func: 
             case Option: 
-            case Var:                         /* 검사 완료 */
+            case Var:  
                 break;
             
             case Else: 
@@ -117,50 +119,63 @@ void syntaxChk() /* 구문 검사 */
             case If: 
             case Elif: 
             case While:
-                code = nextCode(); 
-                (void)get_expression(0, EofLine);            /* 식값 */
+                code = nextCode();
+                //식값에 대해서 처리
+                (void)getExpression(0, EofLine);           
                 break;
         
             case For:
+                
                 code = nextCode();
-                (void)get_memAdrs(code);                              /* 제어 변수 주소 */
-                (void)get_expression('=', 0);                                 /* 초깃값 */
-                (void)get_expression(To, 0);                                  /* 최종값 */
+                //제어 변수의 주소
+                (void)get_memAdrs(code);
+                //초기값
+                (void)getExpression('=', 0);
+                //최종값
+                (void)getExpression(To, 0);   
 
+                //스탭이 증가될 경우
                 if (code.kind == Step) 
                 {
-                    (void)get_expression(Step,0);          /* 증분값 */
+                    //증분값 처리
+                    (void)getExpression(Step,0);     
                 }
 
                 chk_EofLine();
                 break;
-            case Fcall:                                         /* 대입 없는 함수 호출 */
+            //이 함수는 대입이 없는 함수임.
+            case Fcall:                    
                 fncCall_syntax(code.symNbr);
                 chk_EofLine();
-                (void)stk.pop();                                          /* 반환 값 불필요 */
+                //따라서 별도의 반환을 안해도 됨
+                (void)stk.pop();           
                 break;
             case Print: 
             case Println:
                 sysFncExec_syntax(code.kind);
                 break;
 
+            //대입문들...
             case Gvar: 
-            case Lvar:                                           /* 대입문 */
-                (void)get_memAdrs(code);                                   /* 좌변 주소 */
-                (void)get_expression('=', EofLine);                        /* 우변식 값 */
+            case Lvar:              
+                //좌변의 주소
+                (void)get_memAdrs(code); 
+                //우변의 식의 값
+                (void)getExpression('=', EofLine);           
                 break;
         
+            //반환값
             case Return:
-                code = nextCode();                                              /* 반환 값 */
+                code = nextCode();             
 
                 if (code.kind!='?' && code.kind!=EofLine) 
                 {
-                    (void)get_expression();
+                    (void)getExpression();
                 }
 
                 if (code.kind == '?')
                 {
-                    (void)get_expression('?', 0);
+                    (void)getExpression('?', 0);
                 }
                 chk_EofLine();
                 break;
@@ -170,7 +185,7 @@ void syntaxChk() /* 구문 검사 */
 
                 if (code.kind == '?')
                 {
-                    (void)get_expression('?', 0);
+                    (void)getExpression('?', 0);
                 }
                 chk_EofLine();
                 break;
@@ -187,7 +202,7 @@ void syntaxChk() /* 구문 검사 */
 }
 
 //시작행의 프로그램 카운터 설정
-void set_startPc(int n) 
+void setStartPc(int n) 
 {
     startPc = n;
 }
@@ -203,7 +218,7 @@ void execute()
     Dmem.resize(spReg+1000);            
 
     //각종 플래그 설정
-    break_Flg = return_Flg = exit_Flg = false;
+    break_Flag = a = exit_Flag = false;
 
     //프로그램 카운터 설정
     Pc = startPc;
@@ -211,7 +226,7 @@ void execute()
     maxLine = intercode.size() - 1;
 
     //구문 처리
-    while (Pc<=maxLine && !exit_Flg) 
+    while (Pc<=maxLine && !exit_Flag) 
     {
         statement();
     }
@@ -229,7 +244,7 @@ void statement()
 
     //마지막 라인이나 프로그램 종료 플래그일 경우
     //프로그램을 종료한다.
-    if (Pc>maxLine || exit_Flg) 
+    if (Pc>maxLine || exit_Flag) 
         return;           
 
     //제어 범위의 시작과 끝을 지정한다.
@@ -246,7 +261,7 @@ void statement()
         //if문일 경우
         case If:
             //표현이 참일 경우 조건문 실행 후 종료
-            if (get_expression(If, 0)) 
+            if (getExpression(If, 0)) 
             {                         
                 ++Pc; 
                 block(); 
@@ -262,7 +277,7 @@ void statement()
                 //앞에 문 별도로 저장하고 그 다음은 if의 시작과 유사하다.
                 save = firstCode(Pc); 
                 code = nextCode();
-                if (get_expression()) 
+                if (getExpression()) 
                 {                        
                     ++Pc; 
                     block();
@@ -293,7 +308,7 @@ void statement()
             for (;;) 
             {                
                 //false 처리일 경우 종료       
-                if (!get_expression(While, 0)) 
+                if (!getExpression(While, 0)) 
                     break;   
                 
                 //우선 실행
@@ -301,9 +316,9 @@ void statement()
                 block();   
 
                 //종료 관련 플래그 올라가면 종료
-                if (break_Flg || return_Flg || exit_Flg)
+                if (break_Flag || a || exit_Flag)
                 {       
-                    break_Flg = false; break;                      
+                    break_Flag = false; break;                      
                 }       
 
                 //while의 시작점으로 이동한다.
@@ -328,12 +343,12 @@ void statement()
             Dmem.set(varAdrs, stk.pop());
             
             //최종값에 대해서 보존을 한다.
-            endDt = get_expression(To, 0); 
+            endDt = getExpression(To, 0); 
             
             //증분값에 대해서 보존한다. (이거 중요)
             if (code.kind == Step) 
             {
-                stepDt = get_expression(Step, 0);
+                stepDt = getExpression(Step, 0);
             }
             else
             {
@@ -355,16 +370,16 @@ void statement()
                     //거짓이면 종료한다.                        
                     if (Dmem.get(varAdrs) < endDt) 
                         break;    
-                }                                                  /*                   */
+                }                                          
                 
                 //실행을 한다.
                 ++Pc; 
                 block();
                 
                 //실행 도중에 중단하는 플래그를 발견하면 중단한다.
-                if (break_Flg || return_Flg || exit_Flg) 
+                if (break_Flag || a || exit_Flag) 
                 { 
-                    break_Flg = false; 
+                    break_Flag = false; 
                     break;
                 }
                 
@@ -414,20 +429,20 @@ void statement()
             //식이 존재할 경우 -> 이때에는 별도의 반환값을 계산한다.
             if (code.kind!='?' && code.kind!=EofLine)  
             {
-                wkVal = get_expression();
+                wkVal = getExpression();
             }
 
             //?가 있을 경우에 처리를 진행한다.
-            post_if_set(return_Flg);          
+            post_if_set(a);          
             
             //리턴 플래그가 참일 경우
             //리턴값을 던진다.
-            if (return_Flg) 
+            if (a) 
                 returnValue = wkVal;
             
             //리턴값이 거짓일 경우
             //계속 진행을 한다.
-            if (!return_Flg) 
+            if (!a) 
                 ++Pc;
             
             break;
@@ -436,15 +451,15 @@ void statement()
         case Break:
             code = nextCode();
             //?가 있을 경우에 처리를 해준다.
-            post_if_set(break_Flg);         
-            if (!break_Flg) 
+            post_if_set(break_Flag);         
+            if (!break_Flag) 
                 ++Pc;
             break;
         
         //종료문
         case Exit:
             code = nextCode(); 
-            exit_Flg = true;
+            exit_Flag = true;
             break;
 
         //여기 나머지는 그냥 실행되면 무시하면 된다.
@@ -467,7 +482,7 @@ void block()
     TknKind k;
     
     //break, return, exit문일 경우에는 종료 처리를 한다.
-    while (!break_Flg && !return_Flg && !exit_Flg) 
+    while (!break_Flag && !a && !exit_Flag) 
     { 
         //다음 시작 코드를 불러온다.
         k = lookCode(Pc);           
@@ -481,15 +496,15 @@ void block()
 }
 
 //함수 선언에서 다음의 기본 인수를 지정
-//double get_expression(int kind1=0, int kind2=0)
+//int kind1=0, int kind2=0 이런 형태의 기본 인수들...
 //이로 인해서 결과값을 던진다.
-double get_expression(int kind1, int kind2) 
+double getExpression(int kind1, int kind2) 
 {
     expression(kind1, kind2); 
     return stk.pop();
 }
 
-//조건부 식처리를 처리하는 표현
+//조건부 식처리를 처리하는 표현 - 인수 있음
 void expression(int kind1, int kind2)
 {
 
@@ -502,7 +517,7 @@ void expression(int kind1, int kind2)
     code = chk_nextCode(code, kind2);
 }
 
-//일반적인 식 처리를 진행
+//일반적인 식 처리를 진행 - 인수 없음
 void expression()
 {
     term(1);
@@ -677,7 +692,7 @@ int opOrder(TknKind kd)
 }
 
 //이항 연산 처리
-void binaryExpr(TknKind op) 
+void binaryExpression(TknKind op) 
 {
     //뽑아오는 순서 주의!!!!
     double d = 0, d2 = stk.pop(), d1 = stk.pop();
@@ -738,7 +753,7 @@ void binaryExpr(TknKind op)
 }
 
 //?식(삼항연산자)을 처리한다.
-void post_if_set(bool& flg) 
+void postIfSet(bool& flg) 
 {
     //?가 없을 경우 플래그를 true로 변경
     if (code.kind == EofLine)
@@ -748,290 +763,496 @@ void post_if_set(bool& flg)
     }    
 
     //발견될 경우 -> 조건식과 같이 처리
-    if (get_expression('?', 0)) 
+    if (getExpression('?', 0)) 
         flg = true;                   
 }
 
 //함수 호출을 검사하는 함수
-void fncCall_syntax(int fncNbr) 
+void functionCallSyntax(int fncNbr) 
 {
-  int argCt = 0;
+    int argCt = 0;
 
-  code = nextCode(); code = chk_nextCode(code, '(');
-  if (code.kind != ')') {                                       /* 인수가 있다 */
-    for (;; code=nextCode()) {
-      (void)get_expression(); ++argCt;                /* 인수식 처리와 인수 개수 */
-      if (code.kind != ',') break;                     /* , 이면 인수가 계속된다 */
+    //실인수 저장
+    code = nextCode(); 
+
+    //함수명 뒤의 (를 체크
+    code = chk_nextCode(code, '(');
+
+    //인수가 있을 경우
+    if (code.kind != ')') 
+    { 
+        for (;; code=nextCode()) 
+        {
+            //인수식을 처리하고 인수 갯수를 증가
+            (void)getExpression(); 
+            ++argCt;         
+
+            //, 만나면 인수가 계속 되는 것이니 계속되게 처리
+            if (code.kind != ',') 
+                break;                 
+        }
     }
-  }
-  code = chk_nextCode(code, ')');                                /* ) 일 것 */
-  if (argCt != Gtable[fncNbr].args)                       /* 인수 개수 검사 */
-    error_exit(Gtable[fncNbr].name, " 함수의 인수 개수가 잘못되었습니다");
-  stk.push(1.0);                                          /* 적당한 반환 값 */
+    //)가 나오니 넘기고 처리
+    code = chk_nextCode(code, ')'); 
+
+    //인수 갯수를 검사
+    if (argCt != GlobalTable[fncNbr].args)           
+    {
+        cout << GlobalTable[fncNbr].name << " 함수의 인수 개수가 잘못되었습니다" << endl;
+        error_exit(GlobalTable[fncNbr].name, " 함수의 인수 개수가 잘못되었습니다");
+    }
+
+    //적당한 반환값을 넘김
+    stk.push(1.0);        
 }
 
 //함수 호출 처리하는 함수
-void fncCall(int fncNbr)
+void functionCall(int fncNbr)
 {
-  int  n, argCt = 0;
-  vector<double> vc;
+    int  n, argCt = 0;
+    vector<double> vc;
 
-  // 실인수 저장
-  nextCode(); code = nextCode();                         /* 함수명 ( 건너뜀 */
-  if (code.kind != ')') {                                    /* 인수가 있다 */
-    for (;; code=nextCode()) {
-      expression(); ++argCt;                     /* 인수식 처리와 인수 개수 */
-      if (code.kind != ',') break;                 /* ,라면 인수가 계속된다 */
+    // 실인수 저장
+    nextCode(); 
+
+    //함수명 뒤의 (를 건너뜀
+    code = nextCode();                   
+
+    //인수가 있을 경우
+    if (code.kind != ')') 
+    {                 
+        for (;; code=nextCode()) 
+        {
+            //인수식을 처리하고 인수 갯수를 늘린다.
+            expression(); 
+            ++argCt;               
+
+            //,를 만나면 인수 처리를 계속 한다.
+            if (code.kind != ',') 
+                break;            
+        }
     }
-  }
-  code = nextCode();                                            /* ) 건너뜀 */
 
-  // 인수 저장 순서 변경
-  for (n=0; n<argCt; n++) vc.push_back(stk.pop());  /* 뒤에서부터 인수 저장으로 수정*/
-  for (n=0; n<argCt; n++) { stk.push(vc[n]); }
+    //)를 건너뜀
+    code = nextCode();          
 
-  fncExec(fncNbr);                                                /* 함수 실행 */
+    //인수 저장 순서 변경
+    //인수 저장을 뒤에서부터 인수를 저장하도록 수정함.
+    for (n=0; n<argCt; n++) 
+    {
+        vc.push_back(stk.pop());  
+    }
+
+    for (n=0; n<argCt; n++) 
+    { 
+        stk.push(vc[n]); 
+    }
+
+    //함수 실행
+    fncExec(fncNbr);              
 }
 
-void fncExec(int fncNbr) /* 함수 실행 */
+//함수를 실행한다.
+void functionExec(int fncNbr) 
 {
-  // 함수입구처리1
-  int save_Pc = Pc;                                     /* 현재 실행행을 저장 */
-  int save_baseReg = baseReg;                          /* 현재 baseReg를 저장 */
-  int save_spReg = spReg;                                /* 현재 spReg를 저장 */
-  char *save_code_ptr = code_ptr;         /* 현재 실행행 분석용 포인터를 저장 */
-  CodeSet save_code = code;                               /* 현재 code를 저장 */
+    //함수 입구를 처리 첫번째
+    //현재 실행행의 프로그램 카운터 저장
+    int save_Pc = Pc;                   
+    //현재의 base register 저장
+    int save_baseReg = baseReg; 
+    //현재의 sp register 저장
+    int save_spReg = spReg;  
+    //현재 실행하는 행의 분석용 포인터 저장
+    char *save_code_ptr = code_ptr;        
+    //현재 코드를 저장
+    CodeSet save_code = code; 
 
-  // 함수입구처리2
-  Pc = Gtable[fncNbr].adrs;                                 /* 새로운 Pc 설정 */
-  baseReg = spReg;                             /* 새로운 베이스 레지스터 설정 */
-  spReg += Gtable[fncNbr].frame;                               /* 프레임 확보 */
-  Dmem.auto_resize(spReg);                           /* 메모리 유효 영역 확보 */
-  returnValue = 1.0;                                     /* 반환 값의 기본값  */
-  code = firstCode(Pc);                                     /* 시작 코드 획득 */
+    //함수 입구를 처리 두번째
+    //새로운 프로그램 카운터 설정
+    Pc = GlobalTable[fncNbr].adrs;    
+    //새로운 베이스 레지스터 설정
+    baseReg = spReg;             
+    //프레임을 새로 확보
+    spReg += GlobalTable[fncNbr].frame;
+    //메모리 유효 영역 확보
+    Dmem.auto_resize(spReg);   
+    //반환 값의 기본값 임의 설정
+    returnValue = 1.0;       
+    //시작 코드를 얻음
+    code = firstCode(Pc); 
 
-  // 인수 저장 처리
-  nextCode(); code = nextCode();                           /* Func ( 건너뜀   */
-  if (code.kind != ')') {                                        /* 인수 있음 */
-    for (;; code=nextCode()) {
-      set_dtTyp(code, DBL_T);                               /* 대입 시 형 확정 */
-      Dmem.set(get_memAdrs(code), stk.pop());                /* 실인수 값 저장 */
-      if (code.kind != ',') break;                                /* 인수 종료 */
+    //인수 저장을 처리
+    nextCode();
+
+    //함수명 뒤의 (를 건너뜀 
+    code = nextCode(); 
+
+    //인수 있을 경우
+    //) 만날 때까지 돌게된다. ㅇㅅㅇ
+    if (code.kind != ')') 
+    {                 
+        for (;; code=nextCode()) 
+        {
+            //대입 시 형을 확정함
+            set_dtTyp(code, DBL_T);
+            //실제 인수 값 저장
+            Dmem.set(get_memAdrs(code), stk.pop());  
+
+            //인수 처리 종료
+            if (code.kind != ',') 
+                break;          
+        }
     }
-  }
-  code = nextCode();                                            /* ) 건너뜀 */
 
-  // 함수 본체 처리
-  ++Pc; block(); return_Flg = false;                          /* 함수 본체 처리 */
+    //) 처리를 건너뜀
+    code = nextCode();       
 
-  // 함수 출구 처리
-  stk.push(returnValue);                                        /* 반환 값 설정 */
-  Pc       = save_Pc;                                    /* 호출 전 환경을 복원 */
-  baseReg  = save_baseReg;
-  spReg    = save_spReg;
-  code_ptr = save_code_ptr;
-  code     = save_code;
+    //함수 본체를 처리
+    ++Pc; 
+    block(); 
+    a = false;
+
+    //함수 출구를 처리
+    //반환 값 설정
+    stk.push(returnValue);
+    //호출 이전 환경을 복원
+    Pc = save_Pc;       
+    baseReg = save_baseReg;
+    spReg = save_spReg;
+    code_ptr = save_code_ptr;
+    code = save_code;
 }
 
-void sysFncExec_syntax(TknKind kd) /* 내장 함수 검사*/
+//내장 함수를 검사한다.
+void systemFunctionExecSyntax(TknKind kd)
 {
-  switch (kd) {
-  case Toint:
-       code = nextCode(); (void)get_expression('(', ')');
-       stk.push(1.0);
-       break;
-  case Input:
-       code = nextCode();
-       code = chk_nextCode(code, '('); code = chk_nextCode(code, ')');
-       stk.push(1.0);                                             /* 적당한 값 */
-       break;
-  case Print: case Println:
-       do {
-         code = nextCode();
-         if (code.kind == String) code = nextCode();        /* 문자열 출력 확인 */
-         else (void)get_expression();                           /* 값 출력 확인 */
-       } while (code.kind == ',');                /* , 라면 파라미터가 계속된다 */
-       chk_EofLine();
-       break;
-  }
+    switch (kd) 
+    {
+        case Toint:
+            code = nextCode(); 
+            (void)getExpression('(', ')');
+            stk.push(1.0);
+            break;
+        case Input:
+            code = nextCode();
+            code = chk_nextCode(code, '(');
+            code = chk_nextCode(code, ')');
+            //적당한 값을 넣어준다.
+            stk.push(1.0);          
+            reak;
+        case Print: 
+        case Println:
+            do 
+            {
+                code = nextCode();
+
+                //문자열이면 출력 확인
+                if (code.kind == String) 
+                    code = nextCode(); 
+                //그 외에는 값 출력 확인
+                else
+                    (void)getExpression(); 
+            }
+            //,라면 파라미터 계속 진행.
+            //단, 앞에것도 실행은 해야 하니 while이 뒤에 있음. 
+            while (code.kind == ',');              
+
+            chk_EofLine();
+
+            break;
+    }
 }
 
 //내장 함수를 실행하는 함수
-void sysFncExec(TknKind kd)
+void systemFunctionExec(TknKind kd)
 {
     double d;
     string s;
 
     switch (kd)
     {
-    case Toint:
-    code = nextCode();
-    stk.push((int)get_expression('(', ')'));               /* 끝수 버림 */
-    break;
-    case Input:
-    nextCode();
-    nextCode(); 
-    code = nextCode();       /* input ( ) 건너뜀 */
-    getline(cin, s);                                        /* 1행 읽기  */
-    stk.push(atof(s.c_str()));                   /* 숫자로 변환해서 저장 */
-    break;
-    case Print: case Println:
-    do 
-    {
-    code = nextCode();
-    if (code.kind == String)
-    {                             /* 문자열 출력 */
-    cout << code.text; 
-    code = nextCode();
-    }
-    else 
-    {
-    d = get_expression();             /* 함수 내에서 exit 가능성이 있다 */
-    if (!exit_Flg) 
-    cout << d;                              /* 수치 출력 */
-    }
-    } while (code.kind == ',');               /* , 라면 파라미터가 계속된다 */
+        case Toint:
+            code = nextCode();
+            //끝에 수를 버린다.
+            stk.push((int)getExpression('(', ')'));        
+            break;
+        case Input:
+            nextCode();
+            nextCode(); 
+            //input()을 건너뛴다.
+            code = nextCode();   
+            //한 행을 읽음
+            getline(cin, s);
+            //숫자로 변환해서 저장함
+            stk.push(atof(s.c_str()));
+            break;
+        case Print: 
+        case Println:
+            do 
+            {
+                code = nextCode();
+                //문자열이면 문자열을 출력한다.
+                if (code.kind == String)
+                {                            
+                    cout << code.text; 
+                    code = nextCode();
+                }
+                else 
+                {
+                    //함수 내에서 종료될 가능성이 있기 때문에 확인
+                    d = getExpression();           
+                    
+                    //빠져나가는 플래그 아닐 경우, 수치 출력
+                    if (!exit_Flag) 
+                        cout << d;                          
+                }                
+            }
+            //,가 있으면 파라미터가 계속 되어야 한다. 
+            //근데 그 전에 있던 파라메터도 실행은 해야 하니 while을 뒤로 뺌 
+            while (code.kind == ',');        
 
-    if (kd == Println) 
-    cout << endl;                  /* println이면 줄바꿈 */
-    break;
+            //println일 경우 -> 줄바꿈도 해줘야 함.
+            if (kd == Println) 
+                cout << endl;                  
+
+            break;
     }
 }
 
 // 단순 변수 또는 배열 요소의 주소를 반환한다
-int get_memAdrs(const CodeSet& cd)
+int getMemoryAddress(const CodeSet& cd)
 {
-  int adr=0, index, len;
-  double d;
+    int adr=0, index, len;
+    double d;
 
-  adr = get_topAdrs(cd);
-  len = tableP(cd)->aryLen;
-  code = nextCode();
-  if (len == 0) return adr;                                     /* 비배열 변수 */
-  
-  d = get_expression('[', ']'); 
-  if ((int)d != d) error_exit("첨자는 끝수가 없는 수치로 지정해 주세요.");
-  if (syntaxChk_mode) return adr;                           /* 구문 검사 시 */
-  
-  index = (int) d;
-	line = cd.jmpAdrs; 
-	cd = firstCode(line);
-	if (cd.kind ==Elif || cd.kind==Else) continue;
-	if (cd.kind == End) break;
-  return adr + index;		/* 첨자 가산 */
+    adr = get_topAdrs(cd);
+    len = tableP(cd)->aryLen;
+    code = nextCode();
+    //비배열 변수 -> 그냥 주소 반환
+    if (len == 0) 
+        return adr;        
+
+    d = getExpression('[', ']');
+
+    //첨자 오류
+    if ((int)d != d)
+    {
+        cout << "첨자는 끝수가 없는 수치로 지정해 주세요." << endl; 
+        error_exit("첨자는 끝수가 없는 수치로 지정해 주세요.");
+    }
+    //구문 검사 모드 -> 그냥 주소 반환
+    if (syntaxChk_mode) 
+        return adr;                    
+
+    index = (int) d;
+    line = cd.jmpAdrs; 
+    cd = firstCode(line);
+    if (cd.kind ==Elif || cd.kind==Else) 
+        continue;
+    if (cd.kind == End) 
+        break;
+
+    //첨자를 가산해서 반환
+    return adr + index;	
  }
 
 // 변수의 시작 주소(배열일 때도 그 시작 주소)를 반환한다
-int get_topAdrs(const CodeSet& cd)
+int getTopAddress(const CodeSet& cd)
 {
-  switch (cd.kind) {
-  case Gvar: return tableP(cd)->adrs;			        // 글로벌 변수
-  case Lvar: return tableP(cd)->adrs + baseReg;         // 로컬 변수 
-  default: error_exit("변수명이 필요합니다: ", kind_to_s(cd));
-  }
-  return 0; // 이곳으론 오지 않는다
+    switch (cd.kind) 
+    {
+        //글로벌 변수
+        case Gvar: 
+            return tableP(cd)->adrs;			      
+        //로컬 변수
+        case Lvar: 
+            return tableP(cd)->adrs + baseReg;     
+        default: 
+            cout << "변수명이 필요합니다.: " << kind_to_s(cd) << endl;
+            error_exit("변수명이 필요합니다.: ", kind_to_s(cd));
+            break;
+    }
+    return 0; // 이곳으론 오지 않는다
 }
 
-int endline_of_If(int line) /* if 문에 대응하는 end 위치 */
+//if문에 대응하는 end의 위치 확인
+int endlineOfIf(int line) 
 {
-  CodeSet cd;
-  char *save = code_ptr;
+    CodeSet cd;
+    char *save = code_ptr;
 
-  cd = firstCode(line);
-  for (;;) {
-  if (index < 0 || len <= index)
-	error_exit(index, "  는 첨자 범위 밖입니다(첨자범위:0-", len-1, ")");
-  } 	
+    cd = firstCode(line);
+    for (;;) 
+    {
+        if (index < 0 || len <= index)
+        {
+            error_exit(index, "  는 첨자 범위 밖입니다(첨자범위:0-", len-1, ")");
+        }
+    } 	
 
-  code_ptr = save;
-  return line;
+    code_ptr = save;
+    return line;
 }
 
-void chk_EofLine() /* 코드 확인 */
+//라인의 마지막인지 체크하는 코드 확인
+void checkEofLine()
 {
-  if (code.kind != EofLine) error_exit("잘못된 기술입니다: ", kind_to_s(code));
+    if (code.kind != EofLine) 
+    {
+        cout << "잘못된 서술입니다: " << kind_to_s(code) << endl;
+        error_exit("잘못된 서술입니다: ", kind_to_s(code));
+    }
 }
 
-TknKind lookCode(int line) /* line행의 시작 코드 */
+//특정 라인 행의 시작 코드를 진행
+TknKind lookCode(int line) 
 {
-  return (TknKind)(unsigned char)intercode[line][0];
+    return (TknKind)(unsigned char)intercode[line][0];
 }
 
-CodeSet chk_nextCode(const CodeSet& cd, int kind2) /* 확인부 코드 획득 */
+//확인부쪽 코드를 확인 후에 다음을 진행.
+CodeSet checkNextCode(const CodeSet& cd, int kind2)
 {
-  if (cd.kind != kind2) {
-    if (kind2   == EofLine) error_exit("잘못된 기술입니다: ", kind_to_s(cd));
-    if (cd.kind == EofLine) error_exit(kind_to_s(kind2), " 가 필요합니다.");
-    error_exit(kind_to_s(kind2) + " 가(이) " + kind_to_s(cd) + " 앞에 필요합니다.");
-  }
-  return nextCode();
+    if (cd.kind != kind2) 
+    {
+        if (kind2   == EofLine) 
+        {
+            cout << "잘못된 서술입니다: " << kind_to_s(cd) << endl;
+            error_exit("잘못된 서술입니다: ", kind_to_s(cd));
+        }
+
+        if (cd.kind == EofLine) 
+        {
+            cout << kind_to_s(kind2) << "가 필요합니다." << endl;
+            error_exit(kind_to_s(kind2), " 가 필요합니다.");
+        }
+
+        cout << kind_to_s(kind2) << "가(이)" << kind_to_s(cd) << "앞에 필요합니다." << endl;
+        error_exit(kind_to_s(kind2) + " 가(이) " + kind_to_s(cd) + " 앞에 필요합니다.");
+    }
+
+    return nextCode();
 }
 
-CodeSet firstCode(int line)   			/* 시작 코드 획득 */
+//시작 코드를 획득하는 함수
+CodeSet firstCode(int line) 
 {
-  code_ptr = intercode[line];          /* 분석용 포인터를 행의 시작으로 설정 */
-  return nextCode();
+    //분석용 포인터를 행의 시작으로 설정한다.
+    code_ptr = intercode[line];          
+    return nextCode();
 }
 
-CodeSet nextCode() 						/* 코드 획득 */
+//다음 코드를 획득하는 함수
+CodeSet nextCode() 			
 {
-  TknKind kd;
-  short int jmpAdrs, tblNbr;
+    TknKind kd;
+    short int jmpAdrs, tblNbr;
 
-  if (*code_ptr == '\0') return CodeSet(EofLine);
-  kd = (TknKind)*UCHAR_P(code_ptr++);
-  switch (kd) {
-  case Func:
-  case While: case For: case If: case Elif: case Else:
-       jmpAdrs = *SHORT_P(code_ptr); code_ptr += SHORT_SIZ;
-       return CodeSet(kd, -1, jmpAdrs);          // 점프할 주소 
-  case String:
-       tblNbr = *SHORT_P(code_ptr); code_ptr += SHORT_SIZ;
-       return CodeSet(kd, strLITERAL[tblNbr].c_str());   
-  case IntNum: case DblNum:						// 문자열 리터럴 위치 
-       tblNbr = *SHORT_P(code_ptr); code_ptr += SHORT_SIZ;
-       return CodeSet(kd, nbrLITERAL[tblNbr]);  // 수치 리터럴            
-  case Fcall: case Gvar: case Lvar:
-       tblNbr = *SHORT_P(code_ptr); code_ptr += SHORT_SIZ;
-       return CodeSet(kd, tblNbr, -1);        
-  default:              						// 부속 정보가 없는 코드                              
-       return CodeSet(kd);
-  }
+    //코드가 마지막이면 종료
+    if (*code_ptr == '\0') 
+        return CodeSet(EofLine);
+
+    kd = (TknKind)*UCHAR_P(code_ptr++);
+
+    //이런 거 땜에 앞단계에서 전처리를....ㅠㅠㅠㅠ
+    switch (kd) 
+    {
+        case Func:
+        case While: 
+        case For: 
+        case If: 
+        case Elif: 
+        case Else:
+            //점프할 주소를 만들어서 리턴
+            jmpAdrs = *SHORT_P(code_ptr); 
+            code_ptr += SHORT_SIZ;
+            return CodeSet(kd, -1, jmpAdrs);    
+        case String:
+            //다음 테이블 주소 포인터를 만들어서 리턴
+            tblNbr = *SHORT_P(code_ptr); 
+            code_ptr += SHORT_SIZ;
+            return CodeSet(kd, strLITERAL[tblNbr].c_str());   
+        case IntNum: 
+        case DblNum:	
+            //수치 리터럴값에 대한 포인터를 만들어 리턴
+            tblNbr = *SHORT_P(code_ptr); 
+            code_ptr += SHORT_SIZ;
+            return CodeSet(kd, nbrLITERAL[tblNbr]); 
+        case Fcall: 
+        case Gvar: 
+        case Lvar:
+            //함수 콜에 대한 주소 포인터를 만들어 리턴..
+            tblNbr = *SHORT_P(code_ptr); 
+            code_ptr += SHORT_SIZ;
+            return CodeSet(kd, tblNbr, -1);        
+        default:              		
+            // 부속 정보가 없는 코드셋이 만들어져서 리턴...
+            return CodeSet(kd);
+    }
 }
 
-void chk_dtTyp(const CodeSet& cd) /* 형 확인 */
+//데이터 형을 확인하는 함수
+void checkDataType(const CodeSet& cd) 
 {
-  if (tableP(cd)->dtTyp == NON_T)
-    error_exit("초기화되지 않은 변수가 사용되었습니다: ", kind_to_s(cd));
+    if (tableP(cd)->dtTyp == NON_T)
+    {
+        cout << "초기화되지 않은 변수가 사용되었습니다.: " << kind_to_s(cd) << endl;
+        error_exit("초기화되지 않은 변수가 사용되었습니다.: ", kind_to_s(cd));
+    }
 }
 
-void set_dtTyp(const CodeSet& cd, char typ) /* 형 설정 */
+//데이터 형을 설정하는 함수
+void setDataType(const CodeSet& cd, char typ) 
 {
-  int memAdrs = get_topAdrs(cd);
-  vector<SymTbl>::iterator p = tableP(cd);
+    int memAdrs = get_topAdrs(cd);
+    vector<SymTbl>::iterator p = tableP(cd);
 
-  if (p->dtTyp != NON_T) return;                  /* 이미 형이 결정되어 있다 */
-  p->dtTyp = typ;
-  if (p->aryLen != 0) {                           /* 배열이면 내용을 0으로 초기화 */
-    for (int n=0; n < p->aryLen; n++) { Dmem.set(memAdrs+n, 0); }
-  }
+    //이미 형이 결정되어 있으면 그냥 끝냄.
+    if (p->dtTyp != NON_T) 
+        return;              
+
+    p->dtTyp = typ;
+    //배열일 경우에는 해당 메모리 내용을 0으로 초기화
+    if (p->aryLen != 0) 
+    {   
+        for (int n=0; n < p->aryLen; n++) 
+        { 
+            Dmem.set(memAdrs+n, 0); 
+        }
+    }
 }
 
-int set_LITERAL(double d) /* 수치 리터럴 */
+//수치값의 리터럴 설정
+int setLITERAL(double d) 
 {
-  for (int n=0; n<(int)nbrLITERAL.size(); n++) {
-    if (nbrLITERAL[n] == d) return n;            /* 같은 첨자 위치를 반환한다 */
-  }
-  nbrLITERAL.push_back(d);                                /* 수치 리터럴 저장 */
-  return nbrLITERAL.size() - 1;                /*저장 수치 리터럴의 첨자 위치 */
+    for (int n=0; n<(int)nbrLITERAL.size(); n++) 
+    {
+        //같은 첨자의 위치를 반환한다.
+        if (nbrLITERAL[n] == d) 
+            return n;           
+    }
+
+    //수치값의 리터럴을 저장한다.
+    nbrLITERAL.push_back(d);     
+    
+    //저장한 수치값 리터럴의 첨자 위치를 반환한다.
+    return nbrLITERAL.size() - 1;                
 }
 
-int set_LITERAL(const string& s) /* 문자열 리터럴 */
+//문자열 리터럴 설정
+int setLITERAL(const string& s)
 {
-  for (int n=0; n<(int)strLITERAL.size(); n++) {
-    if (strLITERAL[n] == s) return n;            /* 같은 첨자 위치를 반환한다 */
-  }
-  strLITERAL.push_back(s);                              /* 문자열 리터럴 저장 */
-  return strLITERAL.size() - 1;             /* 저장 문자열 리터럴의 첨자 위치 */
+    for (int n=0; n<(int)strLITERAL.size(); n++) 
+    {
+        //같은 첨자의 위치를 반환한다.
+        if (strLITERAL[n] == s) 
+            return n;         
+    }
+
+    //문자열 리터럴을 저장한다.
+    strLITERAL.push_back(s);   
+    
+    //저장된 문자열 리터럴의 첨자 위치를 리턴한다.
+    return strLITERAL.size() - 1;            
 }
 
