@@ -7,7 +7,7 @@
 #include "kyuling-lang-prototype.h"
 
 //수치를 문자열로 바꾸는 함수
-string dbl_to_s(double d) 
+string doubleToString(double d) 
 {
     //출력용 스트림을 확보
     ostringstream ostr;   
@@ -34,8 +34,12 @@ string errorMessage(const string& a, const string& b)
 void errorExit(ObjToken a, ObjToken b, ObjToken c, ObjToken d) 
 {
     ObjToken ob[5];
-    ob[1] = a; ob[2] = b; ob[3] = c; ob[4] = d;
-    cerr << "line:" << get_lineNo() << " ERROR ";
+    ob[1] = a; 
+    ob[2] = b; 
+    ob[3] = c; 
+    ob[4] = d;
+    
+    cerr << "line:" << getLineNo() << " ERROR ";
 
     for (int i=1; i<=4 && ob[i].s!="\1"; i++) 
     {
