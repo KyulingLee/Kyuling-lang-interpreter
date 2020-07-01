@@ -12,7 +12,7 @@
 //현재 처리중인 토큰
 Token token;           
 //임시 저장으로 이용하는 심볼 테이블
-SymTbl tmpTb;         
+SymbolTable tmpTb;         
 
 //블록의 깊이
 int blockNest;    
@@ -27,10 +27,10 @@ int mainTableNumber;
 int loopNest;               
 
 //함수 정의 처리중인지 아닌지 확인하는 플래그
-bool fncDecl_F;                              
+bool fncDecl_Flag;                              
 
 //변수 선언의 경계를 확인하는 플래그
-bool explicit_F;                               
+bool explicit_Flag;                               
 
 //코내부 코드 생성작업을 위해 이용하는 버퍼
 char codebuf[LIN_SIZ+1], *codebuf_p;             
@@ -45,15 +45,15 @@ void init()
     initChTyp();                                                   
     mainTableNumber = -1;
     blockNest = loopNest = 0;
-    fncDecl_F = explicit_F = false;
+    fncDecl_Flag = explicit_Flag = false;
     codebuf_p = codebuf;
 }
 
 //내부 코드로 변환한다
-void convert_to_internalCode(char *fname)
+void convertToInternalCode(char *fname)
 {
     //문자 종류표 등에 대해서 초기화를 진행한다.
-    init();                                               /* ���� ����ǥ �� �ʱ�ȭ  */
+    init();                                     
 
     //함수 정의 이름만을 일단 등록을 한다.
     fileOpen(fname);    
@@ -63,14 +63,14 @@ void convert_to_internalCode(char *fname)
         {
     
             token = nextTkn(); 
-            set_name(); 
+            setName(); 
             enter(tmpTb, fncId);
         }
     }
 
     //내부 코드로 변환을 한다.
     //변환할 때, 0행째는 그냥 매운다
-    push_intercode();      
+    pushInterCode();      
     fileOpen(fname);
     token = nextLine_tkn();
     
@@ -90,12 +90,12 @@ void convert_to_internalCode(char *fname)
         setCode(Fcall, mainTableNumber); 
         setCode('('); 
         setCode(')');
-        push_intercode();
+        pushInterCode();
     }
 }
 
 //앞단에 출현하는 코드를 변환해서 처리한다.
-//그 위에에 나머지 변환이 필요한 것은 convert_rest() 함수라고 따로 만들었다.
+//그 위에에 나머지 변환이 필요한 것은 convertRest() 함수라고 따로 만들었다.
 //앞단 처리는 다른 곳과 문 처리가 달라서 따로 함수를 뺐다.
 void convert()
 {
@@ -108,100 +108,100 @@ void convert()
             break;                               
         //변수 설정
         case Var:   
-            varDecl();   
+            varDeclare();   
             break;                              
         //함수 정의 설정
         case Func:   
-            fncDecl();  
+            functionDeclare();  
             break;                              
         //반복문
         case While: 
         case For:
             ++loopNest;
-            convert_block_set(); 
-            setCode_End();
+            convertBlockSet(); 
+            setCodeEnd();
             --loopNest;
             break;
         //제어문 -> 이건 좀 제어문을 처리하는 과정을 제대로 짜야 한다.
         case If:
             //if 처리
-            convert_block_set();                                
+            convertBlockSet();                                
             
             //elif 처리
             while (token.kind == Elif) 
             { 
-                convert_block_set(); 
+                convertBlockSet(); 
             } 
             
             //else 처리
             if (token.kind == Else)    
             { 
-                convert_block_set(); 
+                convertBlockSet(); 
             }
 
             //end 처리
-            setCode_End();                                      
+            setCodeEnd();                                      
             break;
         case Break:
             if (loopNest <= 0) 
             {
                 cout<< "잘못된 break입니다." << endl;
-                error_exit("잘못된 break입니다.");
+                errorExit("잘못된 break입니다.");
             }
             setCode(token.kind); 
             token = nextTkn(); 
-            convert_rest();
+            convertRest();
             break;
         case Return:
-            if (!fncDecl_F) 
+            if (!fncDecl_Flag) 
             {
                 cout << "잘못된 return입니다." << endl;
-                error_exit("잘못된 return입니다.");
+                errorExit("잘못된 return입니다.");
             }
             setCode(token.kind); 
             token = nextTkn(); 
-            convert_rest();
+            convertRest();
             break;
         case Exit:
             setCode(token.kind); 
             token = nextTkn(); 
-            convert_rest();
+            convertRest();
             break;
         case Print: 
         case Println:
             setCode(token.kind); 
             token = nextTkn(); 
-            convert_rest();
+            convertRest();
             break;
         case End:
             cout << "잘못된 end입니다." << endl;
-            error_exit("잘못된 end입니다.");    
+            errorExit("잘못된 end입니다.");    
             break;
         default: 
-            convert_rest(); 
+            convertRest(); 
             break;
     }
 }
 
 //불록 처리를 설정하고 관리하는 함수
-void convert_block_set()
+void convertBlockSet()
 {
     int patch_line;
     patch_line = setCode(token.kind, S);
     token = nextTkn();
-    convert_rest();
+    convertRest();
 
     //직접 블록을 처리하는 부분
-    convert_block();           
+    convertBlock();           
     //NO_FIX_ADDRESS를 수정한다.
     //이건 end행 번호로 바꿈
     backPatch(patch_line, get_lineNo());      
 }
 
 //블록을 직접 처리하는 함수
-void convert_block() 
+void convertBlock() 
 {
-    TknKind k;
+    TokenKind k;
 
     //블록 끝까지 문을 분석한다.
     ++blockNest;                                    
@@ -212,7 +212,7 @@ void convert_block()
 }
 
 //코드 문의 나머지를 처리하는 함수
-void convert_rest() 
+void convertRest() 
 {
     int tblNbr;
 
@@ -238,13 +238,13 @@ void convert_rest()
         case Option: 
         case Var: 
         case End:
-          error_exit("잘못된 코드입니다. : ", token.text);
+          errorExit("잘못된 코드입니다. : ", token.text);
           cout << "잘못된 코드입니다. : " << token.text << endl;
           break;
 
         //함수 호출과 그 변수를 확인
         case Ident:     
-          set_name();
+          setName();
           
           //함수 등록이 있을 경우
           if ((tblNbr=searchName(tmpTb.name, 'F')) != -1) 
@@ -252,7 +252,7 @@ void convert_rest()
             //main 함수 호출할 경우
             if (tmpTb.name == "main") 
             {
-              error_exit("main 함수는 호출할 수 없습니다.");
+              errorExit("main 함수는 호출할 수 없습니다.");
               cout << "main 함수는 호출할 수 없습니다." << endl;
             }
             setCode(Fcall, tblNbr); 
@@ -263,9 +263,9 @@ void convert_rest()
           if ((tblNbr=searchName(tmpTb.name, 'V')) == -1) 
           {    
             //변수 선언이 필요한 경우
-            if (explicit_F) 
+            if (explicit_Flag) 
             {
-              error_exit("변수 선언이 필요합니다. : ", tmpTb.name);
+              errorExit("변수 선언이 필요합니다. : ", tmpTb.name);
               cout << "변수 선언이 필요합니다. " << tmpTb.name << endl;
             }
 
@@ -301,7 +301,7 @@ void convert_rest()
       }
       token = nextTkn();
     }
-    push_intercode();
+    pushInterCode();
     token = nextLine_tkn();
 }
 
@@ -311,42 +311,42 @@ void optionSet()
   //코드 변환에서 옵션으로 처리
   setCode(Option);             
   //이 이후에는 그냥 원래대로 저장을 한다.
-  setCode_rest();                         
+  setCodeRest();                         
   //변수 선얼을 강제로 처리한다.
   //나중에 처리 단계중에 옵션인지 아닌지를 확인하여 한번에 할 수 있다.
   token = nextTkn();            
   if (token.kind==String && token.text=="var") 
   {
-    explicit_F = true;
+    explicit_Flag = true;
   }
   else 
   {
-    error_exit("option 지정이 올바르지 않습니다.");
+    errorExit("option 지정이 올바르지 않습니다.");
     cout << "option 지정이 올바르지 않습니다." << endl;
   }
 
   token = nextTkn();
-  setCode_EofLine();
+  setCodeEofLine();
 }
 
 //var를 사용하는 변수가 선언됨
-void varDecl()
+void varDeclare()
 {
   //코드 반환을 var 형태로 설정
   setCode(Var);                
   //이후에 나머지는 걍 원래대로 저장한다.
-  setCode_rest();              
+  setCodeRest();              
   
   //무한반복으로 선언 처리를 검사
   for (;;) 
   {
     token = nextTkn();
     //이름 검사 및 설정
-    var_namechk(token); 
-    set_name();
+    varNameCheck(token); 
+    setName();
     
     //배열이면 길이 지정
-    set_aryLen();       
+    setArrayLength();       
     //변수랑 주소 등록
     enter(tmpTb, varId);
 
@@ -354,37 +354,37 @@ void varDecl()
     if (token.kind != ',') 
       break; 
   }
-  setCode_EofLine();
+  setCodeEofLine();
 }
 
 //변수 이름 검사
-void var_namechk(const Token& tk)
+void varNameCheck(const Token& tk)
 {
   if (tk.kind != Ident) 
   {
     cout << tk.text << " 식별자" << endl;
-    error_exit(error_message(tk.text, " 식별자"));
+    errorExit(errorMessage(tk.text, " 식별자"));
   }
 
-  if (is_localScope() && tk.text[0] == '$')
+  if (isLocalScope() && tk.text[0] == '$')
   {
     cout << "함수내 var 선언에서는 $가 붙은 이름을 지정할 수 없습니다. : " << tk.text << endl;
-    error_exit("함수내 var 선언에서는 $가 붙은 이름을 지정할 수 없습니다. : ", tk.text);
+    errorExit("함수내 var 선언에서는 $가 붙은 이름을 지정할 수 없습니다. : ", tk.text);
   }  
   if (searchName(tk.text, 'V') != -1)
   {
     cout << "식별자가 중복되었습니다. : " << tk.text << endl;
-    error_exit("식별자가 중복되었습니다. : ", tk.text);
+    errorExit("식별자가 중복되었습니다. : ", tk.text);
   }
 }
 
 //변수 이름 설정
-void set_name()
+void setName()
 {
   if (token.kind != Ident)
   { 
     cout << "식별자가 필요합니다. : " << token.text << endl;
-    error_exit("식별자가 필요합니다. : ", token.text);
+    errorExit("식별자가 필요합니다. : ", token.text);
   }
 
   tmpTb.clear(); 
@@ -394,7 +394,7 @@ void set_name()
 }
 
 //배열 길이를 확인하고 지정
-void set_aryLen()
+void setArrayLength()
 {
   tmpTb.aryLen = 0;
   
@@ -407,7 +407,7 @@ void set_aryLen()
   if (token.kind != IntNum)
   { 
     cout << "배열의 길이는 양의 정수(+)로 지정해 주세요. : " << token.text << endl;
-     error_exit("배열의 길이는 양의 정수(+)로 지정해 주세요. : ", token.text);
+     errorExit("배열의 길이는 양의 정수(+)로 지정해 주세요. : ", token.text);
   }
 
   //첨자 0부터 시작이므로 마지막 인덱스 +1 처리를 해줘야 함.
@@ -417,26 +417,26 @@ void set_aryLen()
   if (token.kind == '[') 
   {
     cout << "다차원 배열은 선언할 수 없습니다. 언어 형식을 확인하세요." << token.text << endl;
-    error_exit("다차원 배열은 선언할 수 없습니다. 언어 형식을 확인하세요.");
+    errorExit("다차원 배열은 선언할 수 없습니다. 언어 형식을 확인하세요.");
   }
 }
 
 //함수를 정의한다
-void fncDecl() 
+void functionDeclare() 
 {
   //글로벌 심볼 테이블
-  extern vector<SymTbl> Gtable;   
+  extern vector<SymbolTable> Gtable;   
   int tblNbr, patch_line, fncTblNbr;
 
   //함수 정의 위치 오류
   if(blockNest > 0)
   {
     cout << "함수 정의 위치가 바르지 않습니다." << endl;
-     error_exit("함수 정의 위치가 바르지 않습니다.");
+     errorExit("함수 정의 위치가 바르지 않습니다.");
   }
 
   //함수 처리를 시작하는 플래그 설정
-  fncDecl_F = true;                 
+  fncDecl_Flag = true;                 
   //로컬 영역의 할당 주소 카운터 초기화
   localAddress = 0;                    
   //로컬 시작 테이블의 시작 위치를 설정함.
@@ -461,7 +461,7 @@ void fncDecl()
   {                    
     for (;; token=nextTkn()) 
     {
-      set_name();
+      setName();
       //인수 등록
       tblNbr = enter(tmpTb, paraId); 
       //Lvar로 인수 처리
@@ -480,13 +480,13 @@ void fncDecl()
   //')'일 것
   token = chk_nextTkn(token, ')');  
   setCode(')'); 
-  setCode_EofLine();
+  setCodeEofLine();
   //함수 본체를 처리해서 블록으로 만든다.
-  convert_block();                  
+  convertBlock();                  
 
   //NO_FIX_ADDRESS 처리
   backPatch(patch_line, get_lineNo());   
-  setCode_End();
+  setCodeEnd();
   //프레임 크기 설정
   Gtable[fncTblNbr].frame = localAddress;      
 
@@ -498,12 +498,12 @@ void fncDecl()
     if (Gtable[mainTableNumber].args != 0)
     {
       cout << "main 함수에서는 가인수를 지정할 수 없습니다." << endl;
-      error_exit("main 함수에서는 가인수를 지정할 수 없습니다.");
+      errorExit("main 함수에서는 가인수를 지정할 수 없습니다.");
     }
   }
 
   //함수 처리를 종료함
-  fncDecl_F = false;                                          
+  fncDecl_Flag = false;                                          
 }
 
 //라인 행에 라인 번호 n을 지정함
@@ -531,7 +531,7 @@ int setCode(int cd, int nbr)
 }
 
 //나머지 텍스트에 대해서 그대로 저장한다
-void setCode_rest() 
+void setCodeRest() 
 {
   extern char *token_p;
   strcpy(codebuf_p, token_p);
@@ -539,35 +539,35 @@ void setCode_rest()
 }
 
 //end의 저장을 처리함
-void setCode_End() 
+void setCodeEnd() 
 {
   if (token.kind != End)
   {
     cout << token.text << " end" << endl;
-     error_exit(error_message(token.text, "end"));
+     errorExit(errorMessage(token.text, "end"));
   }
   setCode(End); 
   token = nextTkn();
-  setCode_EofLine();
+  setCodeEofLine();
 }
 
 //파일의 최종 라인을 처리
-void setCode_EofLine() 
+void setCodeEofLine() 
 {
   if (token.kind != EofLine) 
   {
     cout << "잘못된 기술입니다. : " << token.text << endl;
-    error_exit("잘못된 기술입니다. : ", token.text);
+    errorExit("잘못된 기술입니다. : ", token.text);
   }
 
   //변환한 내부 코드를 저장한다
-  push_intercode();
+  pushInterCode();
   //다음 행으로 진행한다.
   token = nextLine_tkn();  
 }
 
 //변환한 내부 코드를 저장한다.
-void push_intercode() 
+void pushInterCode() 
 {
   int len;
   char *p;
@@ -576,7 +576,7 @@ void push_intercode()
   if ((len = codebuf_p-codebuf) >= LIN_SIZ)
   {
     cout << "변환 후의 내부 코드가 너무 깁니다. 식을 줄여주세요." << endl;
-    error_exit("변환 후의 내부 코드가 너무 깁니다. 식을 줄여주세요.");
+    errorExit("변환 후의 내부 코드가 너무 깁니다. 식을 줄여주세요.");
   } 
 
   //메모리를 직접 인터프리터가 건드리는 곳이기 때문에 에러 처리를 해주는 형태로 코드를 작성
@@ -590,7 +590,7 @@ void push_intercode()
   catch (bad_alloc) 
   {
     cout << "메모리를 확보할 수 없습니다." << endl;
-    error_exit("메모리를 확보할 수 없습니다."); 
+    errorExit("메모리를 확보할 수 없습니다."); 
   }
 
   //다음 처리를 대비해서 저장할 곳의 맨 앞으로 위치를 지정한다.
@@ -598,8 +598,8 @@ void push_intercode()
 }
 
 //함수내에서 처리중일 경우에 true 처리를 한다.
-bool is_localScope() 
+bool isLocalScope() 
 {
-  return fncDecl_F;
+  return fncDecl_Flag;
 }
 

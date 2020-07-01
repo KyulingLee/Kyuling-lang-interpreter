@@ -9,82 +9,82 @@
 void initCharType();
 Token nextToken();
 void nextLine();
-Token nextLine_token();
+Token nextLineToken();
 void fileOpen(char *fname);
-TokenKind get_kind(const string& s);
-bool is_ope2(char c1, char c2);
-Token check_nextToken(const Token& tk, int kind2);
-void set_token_p(char *p);
-string kind_to_s(int kd);
-string kind_to_s(const CodeSet& cd);
-int get_lineNo();
+TokenKind getKind(const string& s);
+bool isOpe2(char c1, char c2);
+Token checkNextToken(const Token& tk, int kind2);
+void setTokenPointer(char *p);
+string kindToString(int kd);
+string kindToString(const CodeSet& cd);
+int getLineNo();
 
 //심볼 테이블 처리용 소스코드
 //kyuling-lang-table.cpp
-int enter(SymTbl& tb, SymKind kind);
-void set_startLtable();
-bool is_localName(const string& name, SymKind kind);
+int enter(SymbolTable& tb, SymbolKind kind);
+void setStartLocalTable();
+bool isLocalName(const string& name, SymbolKind kind);
 int searchName(const string& s, int mode);
-vector<SymTbl>::iterator tableP(const CodeSet& cd);
+vector<SymbolTable>::iterator tablePointer(const CodeSet& cd);
 
 //구문 분석용 소스코드
 //kyuling-lang-parser.cpp
 void init();
-void convert_to_internalCode(char *fname);
+void convertToInternalCode(char *fname);
 void convert();
-void convert_block_set();
-void convert_block();
-void convert_rest();
-void convert_rest();
-void varDecl();
-void var_namechk(const Token& tk);
-void set_name();
-void set_aryLen();
-void fncDecl(); 
+void convertBlockSet();
+void convertBlock();
+void convertRest();
+void optionSet();
+void varDeclare();
+void varNameCheck(const Token& tk);
+void setName();
+void setArrayLength();
+void functionDeclare(); 
 void backPatch(int line, int n);
 void setCode(int cd);
 int setCode(int cd, int nbr);
-void setCode_rest();
-void setCode_End();
-void setCode_EofLine();
-void push_intercode();
-bool is_localScope();
+void setCodeRest();
+void setCodeEnd();
+void setCodeEofLine();
+void pushInterCode();
+bool isLocalScope();
 
 //프로그램을 위해 추가로 이용하는 소스코드
 //kyuling-lang-misc.cpp
-string dbl_to_s(double d);
-string error_message(const string& a, const string& b);
-void error_exit(Tobj a, Tobj b, Tobj c, Tobj d);
+string doubleToString(double d);
+string errorMessage(const string& a, const string& b);
+void errorExit(ObjToken a, ObjToken b, ObjToken c, ObjToken d);
 
 //실제 소스코드 분석하고 처리하기 위해 이용하는 소스코드
 //kyuling-lang-code.cpp
 void syntaxCheck();
-void set_startPc(int n);
+void setStartPc(int n);
 void execute();
 void statement();
 void block();
-double get_expression(int kind1, int kind2);
+double getExpression(int kind1, int kind2);
 void expression(int kind1, int kind2);
 void expression();
 void term(int n);
 void factor();
-int opOrder(TknKind kd);
-void binaryExpr(TknKind op);
-void post_if_set(bool& flg);
-void fncCall_syntax(int fncNbr);
-void fncCall(int fncNbr);
-void fncExec(int fncNbr);
-void sysFncExec_syntax(TknKind kd);
-void sysFncExec(TknKind kd);
-int get_memAdrs(const CodeSet& cd);
-int get_topAdrs(const CodeSet& cd);
-int endline_of_If(int line);
-void chk_EofLine();
-TknKind lookCode(int line);
-CodeSet chk_nextCode(const CodeSet& cd, int kind2);
+int opOrder(TokenKind kd);
+void binaryExpr(TokenKind op);
+void postIfSet(bool& flg);
+void functionCallSyntax(int fncNbr);
+void functionCall(int fncNbr);
+void functionExecute(int fncNbr);
+void sysFunctionExecuteSyntax(TokenKind kd);
+void sysfunctionExecute(TokenKind kd);
+int getMemoryAddress(const CodeSet& cd);
+int getTopAddress(const CodeSet& cd);
+int endlineOfIf(int line);
+void checkEofLine();
+TokenKind lookCode(int line);
+CodeSet checkNextCode(const CodeSet& cd, int kind2);
 CodeSet firstCode(int line);
 CodeSet nextCode();
-void chk_dtTyp(const CodeSet& cd);
-void set_dtTyp(const CodeSet& cd, char typ);
-int set_LITERAL(double d);
-int set_LITERAL(const string& s);
+void checkdtType(const CodeSet& cd);
+void setdtType(const CodeSet& cd, char typ);
+int setLITERAL(double d);
+int setLITERAL(const string& s);

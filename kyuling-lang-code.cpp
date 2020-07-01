@@ -34,7 +34,7 @@ bool return_Flag;
 //종료문 제어
 bool exit_Flag;                     
 //가상메모리
-Mymemory Dmem;                                                    
+MyMemory Dmem;                                                    
 //문자열 리터럴을 저장하는 벡터
 vector<string> strLITERAL;                             
 //수치 리터럴을 저장하는 백터
@@ -42,7 +42,7 @@ vector<double> nbrLITERAL;
 //구문검사용 -> 검사 되면 참으로 바꿔서 처리함.
 bool syntaxChk_mode = false;                          
 //글로벌한 심볼 테이블
-extern vector<SymTbl> GlobalTable;                        
+extern vector<SymbolTable> GlobalTable;                        
 
 //stl에 있는 stack을 감싸서 처리하는 클래스
 class MyStack 
@@ -77,7 +77,7 @@ class MyStack
             if (st.empty()) 
             {
                 cout << "stack underflow" << endl;
-                error_exit("stack underflow");
+                errorExit("stack underflow");
             }
             //스택 탑에 있는 값 -> 이걸 읽어오는거임.
             double d = st.top();  
@@ -194,7 +194,7 @@ void syntaxCheck()
                 break;
             default:
                 cout << "잘못된 서술입니다.: " << kind_to_s(code.kind) << endl; 
-                error_exit("잘못된 서술입니다: ", kind_to_s(code.kind));
+                errorExit("잘못된 서술입니다: ", kind_to_s(code.kind));
         }
     }
 
@@ -472,14 +472,14 @@ void statement()
         //그 외 -> 전부 오류임.
         default:
             cout << "잘못된 서술입니다: " << kind_to_s(code.kind) << endl;
-            error_exit("잘못된 서술입니다: ", kind_to_s(code.kind));
+            errorExit("잘못된 서술입니다: ", kind_to_s(code.kind));
     }
 }
 
 //블록 끝까지 문을 실행할 때 이용하는 함수
 void block()
 {
-    TknKind k;
+    TokenKind k;
     
     //break, return, exit문일 경우에는 종료 처리를 한다.
     while (!break_Flag && !a && !exit_Flag) 
@@ -526,7 +526,7 @@ void expression()
 //n에 대해서 우선 처리를 진행한다.
 void term(int n) 
 {
-    TknKind op;
+    TokenKind op;
     if (n == 7) 
     { 
         factor(); 
@@ -555,7 +555,7 @@ void term(int n)
 //인자 처리 함수.
 void factor() 
 {
-    TknKind kd = code.kind;
+    TokenKind kd = code.kind;
 
     //구문 체크 처리를 한다.
     if (syntaxChk_mode) 
@@ -593,10 +593,10 @@ void factor()
                 break;
             case EofLine:
                 cout << "식이 올바르지 않습니다." << endl;
-                error_exit("식이 올바르지 않습니다.");
+                errorExit("식이 올바르지 않습니다.");
             default:
                 cout << "식 오류: " << kind_to_s(code) << endl;
-                error_exit("식 오류:", kind_to_s(code));         
+                errorExit("식 오류:", kind_to_s(code));         
         }
 
         return;
@@ -649,7 +649,7 @@ void factor()
 }
 
 //이항 연산자의 우선순위 처리
-int opOrder(TknKind kd) 
+int opOrder(TokenKind kd) 
 {
     switch (kd) 
     {
@@ -692,7 +692,7 @@ int opOrder(TknKind kd)
 }
 
 //이항 연산 처리
-void binaryExpression(TknKind op) 
+void binaryExpression(TokenKind op) 
 {
     //뽑아오는 순서 주의!!!!
     double d = 0, d2 = stk.pop(), d1 = stk.pop();
@@ -700,7 +700,7 @@ void binaryExpression(TknKind op)
     if ((op==Divi || op==Mod || op==IntDivi) && d2==0)
     {
         cout << "0으로 나눴습니다." << endl;
-        error_exit("0으로 나눴습니다.");
+        errorExit("0으로 나눴습니다.");
     }
 
     switch (op) 
@@ -799,7 +799,7 @@ void functionCallSyntax(int fncNbr)
     if (argCt != GlobalTable[fncNbr].args)           
     {
         cout << GlobalTable[fncNbr].name << " 함수의 인수 개수가 잘못되었습니다" << endl;
-        error_exit(GlobalTable[fncNbr].name, " 함수의 인수 개수가 잘못되었습니다");
+        errorExit(GlobalTable[fncNbr].name, " 함수의 인수 개수가 잘못되었습니다");
     }
 
     //적당한 반환값을 넘김
@@ -924,7 +924,7 @@ void functionExec(int fncNbr)
 }
 
 //내장 함수를 검사한다.
-void systemFunctionExecSyntax(TknKind kd)
+void systemFunctionExecSyntax(TokenKind kd)
 {
     switch (kd) 
     {
@@ -964,7 +964,7 @@ void systemFunctionExecSyntax(TknKind kd)
 }
 
 //내장 함수를 실행하는 함수
-void systemFunctionExec(TknKind kd)
+void systemFunctionExec(TokenKind kd)
 {
     double d;
     string s;
@@ -1038,7 +1038,7 @@ int getMemoryAddress(const CodeSet& cd)
     if ((int)d != d)
     {
         cout << "첨자는 끝수가 없는 수치로 지정해 주세요." << endl; 
-        error_exit("첨자는 끝수가 없는 수치로 지정해 주세요.");
+        errorExit("첨자는 끝수가 없는 수치로 지정해 주세요.");
     }
     //구문 검사 모드 -> 그냥 주소 반환
     if (syntaxChk_mode) 
@@ -1069,7 +1069,7 @@ int getTopAddress(const CodeSet& cd)
             return tableP(cd)->adrs + baseReg;     
         default: 
             cout << "변수명이 필요합니다.: " << kind_to_s(cd) << endl;
-            error_exit("변수명이 필요합니다.: ", kind_to_s(cd));
+            errorExit("변수명이 필요합니다.: ", kind_to_s(cd));
             break;
     }
     return 0; // 이곳으론 오지 않는다
@@ -1086,7 +1086,7 @@ int endlineOfIf(int line)
     {
         if (index < 0 || len <= index)
         {
-            error_exit(index, "  는 첨자 범위 밖입니다(첨자범위:0-", len-1, ")");
+            errorExit(index, "  는 첨자 범위 밖입니다(첨자범위:0-", len-1, ")");
         }
     } 	
 
@@ -1100,14 +1100,14 @@ void checkEofLine()
     if (code.kind != EofLine) 
     {
         cout << "잘못된 서술입니다: " << kind_to_s(code) << endl;
-        error_exit("잘못된 서술입니다: ", kind_to_s(code));
+        errorExit("잘못된 서술입니다: ", kind_to_s(code));
     }
 }
 
 //특정 라인 행의 시작 코드를 진행
-TknKind lookCode(int line) 
+TokenKind lookCode(int line) 
 {
-    return (TknKind)(unsigned char)intercode[line][0];
+    return (TokenKind)(unsigned char)intercode[line][0];
 }
 
 //확인부쪽 코드를 확인 후에 다음을 진행.
@@ -1118,17 +1118,17 @@ CodeSet checkNextCode(const CodeSet& cd, int kind2)
         if (kind2   == EofLine) 
         {
             cout << "잘못된 서술입니다: " << kind_to_s(cd) << endl;
-            error_exit("잘못된 서술입니다: ", kind_to_s(cd));
+            errorExit("잘못된 서술입니다: ", kind_to_s(cd));
         }
 
         if (cd.kind == EofLine) 
         {
             cout << kind_to_s(kind2) << "가 필요합니다." << endl;
-            error_exit(kind_to_s(kind2), " 가 필요합니다.");
+            errorExit(kind_to_s(kind2), " 가 필요합니다.");
         }
 
         cout << kind_to_s(kind2) << "가(이)" << kind_to_s(cd) << "앞에 필요합니다." << endl;
-        error_exit(kind_to_s(kind2) + " 가(이) " + kind_to_s(cd) + " 앞에 필요합니다.");
+        errorExit(kind_to_s(kind2) + " 가(이) " + kind_to_s(cd) + " 앞에 필요합니다.");
     }
 
     return nextCode();
@@ -1145,14 +1145,14 @@ CodeSet firstCode(int line)
 //다음 코드를 획득하는 함수
 CodeSet nextCode() 			
 {
-    TknKind kd;
+    TokenKind kd;
     short int jmpAdrs, tblNbr;
 
     //코드가 마지막이면 종료
     if (*code_ptr == '\0') 
         return CodeSet(EofLine);
 
-    kd = (TknKind)*UCHAR_P(code_ptr++);
+    kd = (TokenKind)*UCHAR_P(code_ptr++);
 
     //이런 거 땜에 앞단계에서 전처리를....ㅠㅠㅠㅠ
     switch (kd) 
@@ -1197,7 +1197,7 @@ void checkDataType(const CodeSet& cd)
     if (tableP(cd)->dtTyp == NON_T)
     {
         cout << "초기화되지 않은 변수가 사용되었습니다.: " << kind_to_s(cd) << endl;
-        error_exit("초기화되지 않은 변수가 사용되었습니다.: ", kind_to_s(cd));
+        errorExit("초기화되지 않은 변수가 사용되었습니다.: ", kind_to_s(cd));
     }
 }
 
@@ -1205,7 +1205,7 @@ void checkDataType(const CodeSet& cd)
 void setDataType(const CodeSet& cd, char typ) 
 {
     int memAdrs = get_topAdrs(cd);
-    vector<SymTbl>::iterator p = tableP(cd);
+    vector<SymbolTable>::iterator p = tableP(cd);
 
     //이미 형이 결정되어 있으면 그냥 끝냄.
     if (p->dtTyp != NON_T) 

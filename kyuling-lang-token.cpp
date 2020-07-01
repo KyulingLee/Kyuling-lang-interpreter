@@ -199,7 +199,7 @@ Token nextToken()
             if (CH == '"') 
                 NEXT_CH(); 
             else 
-                error_exit("");
+                errorExit("");
             
             return Token(String, txt);
         //연산자 등의 기본 기호 추출
@@ -226,7 +226,7 @@ Token nextToken()
 
     //전혀 다른 토큰이 처리되었을 때
     if (kind == Others) 
-        error_exit("잘못된 토큰입니다. 토큰: ", txt);
+        errorExit("잘못된 토큰입니다. 토큰: ", txt);
     
     return Token(kind, txt);
 }
@@ -255,13 +255,13 @@ void nextLine()
     if (strlen(buf) > LIN_SIZE)
     {
         cout << "프로그램은 1줄에 " << LIN_SIZE << "문자 이내로 작성해 주세요." <<endl;
-        error_exit("프로그램은 1줄에 ", LIN_SIZE, " 문자 이내로 작성해 주세요.");
+        errorExit("프로그램은 1줄에 ", LIN_SIZE, " 문자 이내로 작성해 주세요.");
     }
 
     if (++srcLineno > MAX_LINE)
     {
         cout << "프로그램이 " << MAX_LINE << "을 넘었습니다." <<endl;
-        error_exit("프로그램이 ", MAX_LINE, " 을 넘었습니다.");
+        errorExit("프로그램이 ", MAX_LINE, " 을 넘었습니다.");
     }
 
     //토큰 분석용 포인터를 buf의 맨 앞에 위치시킨다.
@@ -327,7 +327,7 @@ Token check_nextToken(const Token& tk, int kind2)
     if (tk.kind != kind2) 
     {
         cout << "에러: " << tk.text << ", " << kind_to_s(kind2) << endl;
-        error_exit(error_message(tk.text, kind_to_s(kind2)));
+        errorExit(errorMessage(tk.text, kind_to_s(kind2)));
     }
     return nextToken();
 }

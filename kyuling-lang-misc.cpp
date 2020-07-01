@@ -18,7 +18,7 @@ string dbl_to_s(double d)
 }
 
 //에러 메시지를 생성하는 함수
-string error_message(const string& a, const string& b) 
+string errorMessage(const string& a, const string& b) 
 {
     if (a == "") 
         return b + " 가 필요합니다.";
@@ -31,9 +31,9 @@ string error_message(const string& a, const string& b)
 //오류 표시를 하는 함수
 //기존 cout 처리를 수정할 수 있다. ㅇㅅㅇ;;
 //함수 선언에서 디폴트 인수 지정을 하고 시작하였다.
-void error_exit(Tobj a, Tobj b, Tobj c, Tobj d) 
+void errorExit(ObjToken a, ObjToken b, ObjToken c, ObjToken d) 
 {
-    Tobj ob[5];
+    ObjToken ob[5];
     ob[1] = a; ob[2] = b; ob[3] = c; ob[4] = d;
     cerr << "line:" << get_lineNo() << " ERROR ";
 

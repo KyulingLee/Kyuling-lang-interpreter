@@ -19,14 +19,14 @@ vector<SymbolTable> LocalTable;
 int startLocalTable;           		
 
 //심볼 테이블에 등록하는 함수
-int enter(SymTbl& tb, SymKind kind) 
+int enter(SymbolTable& tb, SymbolKind kind) 
 {
     int n, mem_size;
     bool isLocal = is_localName(tb.name, kind);
     //로컬 변수의 주소 관리하는 녀석
     extern int localAdrs;                              
     //가상머신의 메모리
-    extern Mymemory Dmem;                                          
+    extern MyMemory Dmem;                                          
 
     ////확인하는 부분
     mem_size = tb.aryLen;
@@ -38,7 +38,7 @@ int enter(SymTbl& tb, SymKind kind)
     if (kind!=varId && tb.name[0]=='$')  
     {   
         cout << "변수명 이외에서 $를 사용할 수 없습니다. : " << tb.name << endl;                     
-        error_exit("변수명 이외에서 $를 사용할 수 없습니다. : ", tb.name);
+        errorExit("변수명 이외에서 $를 사용할 수 없습니다. : ", tb.name);
     }
     
     tb.nmKind = kind;
@@ -52,7 +52,7 @@ int enter(SymTbl& tb, SymKind kind)
     if (n != -1) 
     {
         cout << "변수 이름이 중복되었습니다. : " << tb.name << endl;
-        error_exit("or변수 이름이 중복되었습니다. : ", tb.name);
+        errorExit("or변수 이름이 중복되었습니다. : ", tb.name);
     }
 
     //주소를 설정한다.
@@ -101,7 +101,7 @@ void set_startLtable()
 }
 
 //로컬쪽의 이름이면 true를 넘긴다
-bool is_localName(const string& name, SymKind kind) 
+bool is_localName(const string& name, SymbolKind kind) 
 {
     if (kind == paraId) 
         return true;
@@ -149,7 +149,7 @@ int searchName(const string& s, int mode)
             if (searchName(s, 'F') != -1)
             {
                 cout << "함수명과 중복되었습니다. : " << s << endl;
-                error_exit("or함수명과 중복되었습니다. : ", s);
+                errorExit("or함수명과 중복되었습니다. : ", s);
             }
             if (s[0] == '$')     
                 return searchName(s, 'G');
@@ -162,7 +162,7 @@ int searchName(const string& s, int mode)
 }
 
 //반복자를 획득한다
-vector<SymTbl>::iterator tableP(const CodeSet& cd)
+vector<SymbolTable>::iterator tableP(const CodeSet& cd)
 {
     if (cd.kind == Lvar) 
         return LocalTable.begin() + cd.symNbr;           
