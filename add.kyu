@@ -1,0 +1,8 @@
+sum = 0
+println "Please input number. If input 0, program will be exit."
+n = input()
+while n != 0
+	sum = sum + n
+	println "   >>", sum
+	n = input()
+end
