@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
     //파일이 없을 경우 - 메시지 출력 후 종료
     if (argc == 1) 
     { 
-        cout << "사용 방법: bbi filename\n"; 
+        cout << "사용 방법: kyuling-lang filename\n"; 
         exit(1); 
     }
 
