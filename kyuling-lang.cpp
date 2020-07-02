@@ -16,9 +16,9 @@ int main(int argc, char* argv[])
     }
 
     //내부 코드로 변환
-    convertToInternalCode(argv[1]);
-    //구분 체크
-    syntaxCheck();
+    convert_to_internalCode(argv[1]);
+    //구문 체크
+    syntaxChk();
     //실행
     execute();
 
