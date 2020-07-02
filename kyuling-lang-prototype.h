@@ -11,7 +11,7 @@ Token nextToken();
 void nextLine();
 Token nextLineToken();
 void fileOpen(char *fname);
-TokenKind getKind(const string& s);
+TknKind getKind(const string& s);
 bool isOpe2(char c1, char c2);
 Token checkNextToken(const Token& tk, int kind2);
 void setTokenPointer(char *p);
@@ -21,11 +21,11 @@ int getLineNo();
 
 //심볼 테이블 처리용 소스코드
 //kyuling-lang-table.cpp
-int enter(SymbolTable& tb, SymbolKind kind);
+int enter(SymTbl& tb, SymKind kind);
 void setStartLocalTable();
-bool isLocalName(const string& name, SymbolKind kind);
+bool isLocalName(const string& name, SymKind kind);
 int searchName(const string& s, int mode);
-vector<SymbolTable>::iterator tablePointer(const CodeSet& cd);
+vector<SymTbl>::iterator tablePointer(const CodeSet& cd);
 
 //구문 분석용 소스코드
 //kyuling-lang-parser.cpp
@@ -39,7 +39,7 @@ void optionSet();
 void varDeclare();
 void varNameCheck(const Token& tk);
 void setName();
-void setArrayLength();
+void setaryLength();
 void functionDeclare(); 
 void backPatch(int line, int n);
 void setCode(int cd);
@@ -54,7 +54,7 @@ bool isLocalScope();
 //kyuling-lang-misc.cpp
 string doubleToString(double d);
 string errorMessage(const string& a, const string& b);
-void errorExit(ObjToken a, ObjToken b, ObjToken c, ObjToken d);
+void errorExit(Tobj a, Tobj b, Tobj c, Tobj d);
 
 //실제 소스코드 분석하고 처리하기 위해 이용하는 소스코드
 //kyuling-lang-code.cpp
@@ -68,19 +68,19 @@ void expression(int kind1, int kind2);
 void expression();
 void term(int n);
 void factor();
-int opOrder(TokenKind kd);
-void binaryExpr(TokenKind op);
+int opOrder(TknKind kd);
+void binaryExpr(TknKind op);
 void postIfSet(bool& flg);
 void functionCallSyntax(int fncNbr);
 void functionCall(int fncNbr);
 void functionExecute(int fncNbr);
-void sysFunctionExecuteSyntax(TokenKind kd);
-void sysfunctionExecute(TokenKind kd);
+void sysFunctionExecuteSyntax(TknKind kd);
+void sysfunctionExecute(TknKind kd);
 int getMemoryAddress(const CodeSet& cd);
 int getTopAddress(const CodeSet& cd);
 int endlineOfIf(int line);
 void checkEofLine();
-TokenKind lookCode(int line);
+TknKind lookCode(int line);
 CodeSet checkNextCode(const CodeSet& cd, int kind2);
 CodeSet firstCode(int line);
 CodeSet nextCode();

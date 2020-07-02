@@ -12,7 +12,7 @@
 //현재 처리중인 토큰
 Token token;           
 //임시 저장으로 이용하는 심볼 테이블
-SymbolTable tmpTb;         
+SymTbl tmpTb;         
 
 //블록의 깊이
 int blockNest;    
@@ -33,7 +33,7 @@ bool fncDecl_Flag;
 bool explicit_Flag;                               
 
 //코내부 코드 생성작업을 위해 이용하는 버퍼
-char codebuf[LINE_SIZE+1];
+char codebuf[LIN_SIZ+1];
 char *codebuf_p;             
 
 //변환을 마친 내부 코드를 벡터로 저장
@@ -201,7 +201,7 @@ void convertBlockSet()
 //블록을 직접 처리하는 함수
 void convertBlock() 
 {
-    TokenKind k;
+    TknKind k;
 
     //블록 끝까지 문을 분석한다.
     ++blockNest;                                    
@@ -348,7 +348,7 @@ void varDeclare()
         setName();
 
         //배열이면 길이 지정
-        setArrayLength();       
+        setaryLength();       
         //변수랑 주소 등록
         enter(tmpTb, varId);
 
@@ -397,7 +397,7 @@ void setName()
 }
 
 //배열 길이를 확인하고 지정
-void setArrayLength()
+void setaryLength()
 {
     tmpTb.aryLen = 0;
 
@@ -429,7 +429,7 @@ void setArrayLength()
 void functionDeclare() 
 {
     //글로벌 심볼 테이블
-    extern vector<SymbolTable> Gtable;   
+    extern vector<SymTbl> Gtable;   
     int tblNbr, patch_line, fncTblNbr;
 
     //함수 정의 위치 오류
@@ -528,7 +528,7 @@ int setCode(int cd, int nbr)
 {
     *codebuf_p++ = (char)cd;
     *SHORT_POINT(codebuf_p) = (short)nbr; 
-    codebuf_p += SHORT_SIZE;
+    codebuf_p += SHORT_SIZ;
 
     //backPatch용으로 저장행을 반환함
     return getLineNo();             

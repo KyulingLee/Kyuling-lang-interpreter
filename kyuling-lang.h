@@ -20,16 +20,16 @@ using namespace std;
 
 //define은 여기다가 일단 다 모았다.
 //short int형 크기
-#define SHORT_SIZE  sizeof(short int)                 
+#define SHORT_SIZ  sizeof(short int)              
 //short int형 포인터 변환
-#define SHORT_POINT(p) (short int *)(p)            
+#define SHORT_P(p) (short int *)(p)        
 //unsigned char형 포인터 변환
-#define UCHAR_POINT(p) (unsigned char *)(p)   
+#define UCHAR_P(p) (unsigned char *)(p)     
 //소스 한 줄 최대 크기
-#define LINE_SIZE 255                          
+#define LIN_SIZ 255                          
 
 //토큰으로 만들 요소들에 대해서 enum으로 정리하였다.
-enum TokenKind {                                                
+enum TknKind {                                                     
     Lparen='(',
     Rparen=')',
     Lbracket='[',
@@ -90,7 +90,7 @@ enum TokenKind {
 //토큰을 관리하는 구조체
 struct Token {     
   //토큰 종류           
-  TokenKind kind;                                                               
+    TknKind kind;
   //토큰 문자열
   string  text;                                                              
   //수치 상수로 변환할 때의 값
@@ -103,28 +103,28 @@ struct Token {
     dblVal=0.0; 
   }
 
-  Token (TokenKind k)           
+  Token (TknKind k)           
   { 
     kind=k; 
     text="";
     dblVal=0.0; 
   }
 
-  Token (TokenKind k, double d)
+  Token (TknKind k, double d)
   { 
     kind=k;
     text=""; 
     dblVal=d; 
   }
 
-  Token (TokenKind k, const string& s) 
+  Token (TknKind k, const string& s) 
   { 
     kind=k; 
     text=s; 
     dblVal=0.0;
   }
 
-  Token (TokenKind k, const string& s, double d)
+  Token (TknKind k, const string& s, double d)
   { 
     kind=k; 
     text=s;
@@ -133,21 +133,21 @@ struct Token {
 };
 
 //심볼 테이블에서의 등록 이름의 종류
-enum SymbolKind { noId, varId, fncId, paraId }; 
+enum SymKind { noId, varId, fncId, paraId }; 
 //심볼 테이블에서의 타입 이름
 enum DtType  { NON_T, DBL_T };      
 
 //심볼 테이블을 구성하는 구조체
-struct SymbolTable 
+struct SymTbl 
 {              
     //변수나 함수의 이름
     string  name;       
     //종류
-    SymbolKind nmKind;             
+    SymKind nmKind;             
     //변수명
     char    dtType;              
     //배열의 길이
-    int     arrayLen; 
+    int     aryLen; 
     //함수의 인수 갯수
     short   args;  
     //변수, 함수의 주소
@@ -155,7 +155,7 @@ struct SymbolTable
     //함수의 프레임 크기
     int     frame;      
 
-    SymbolTable() 
+    SymTbl() 
     { 
         clear(); 
     }
@@ -165,7 +165,7 @@ struct SymbolTable
         name=""; 
         nmKind=noId;
         dtType=NON_T;
-        arrayLen=0; 
+        aryLen=0; 
         args=0; 
         adrs=0; 
         frame=0;
@@ -176,7 +176,7 @@ struct SymbolTable
 struct CodeSet 
 {   
     //종류          
-    TokenKind kind;           
+    TknKind kind;           
     //문자열 중 리터널일 때의 위치 포인터
     const char *text;       
     //수치 상수일 때의 값
@@ -191,27 +191,27 @@ struct CodeSet
         clear();
     }
     
-    CodeSet(TokenKind k)     
+    CodeSet(TknKind k)     
     { 
         clear(); 
         kind=k; 
     }
     
-    CodeSet(TokenKind k, double d) 
+    CodeSet(TknKind k, double d) 
     { 
         clear(); 
         kind=k; 
         dblVal=d;
     }
     
-    CodeSet(TokenKind k, const char *s)
+    CodeSet(TknKind k, const char *s)
     {
         clear(); 
         kind=k;
         text=s; 
     }
     
-    CodeSet(TokenKind k, int sym, int jmp)
+    CodeSet(TknKind k, int sym, int jmp)
     {
         clear(); 
         kind=k; 
@@ -230,7 +230,7 @@ struct CodeSet
 };
 
 //오브젝트 형 정보를 가진 토크
-struct ObjToken 
+struct Tobj 
 {        
     //저장형 타입
     //d: double
@@ -240,22 +240,22 @@ struct ObjToken
     double d;
     string s;
 
-    ObjToken()                 
+    Tobj()                 
     { 
         type = '-'; d = 0.0; s = ""; 
     }
 
-    ObjToken(double dt)        
+    Tobj(double dt)        
     { 
         type = 'd'; d = dt;  s = "";
     }
 
-    ObjToken(const string& st) 
+    Tobj(const string& st) 
     { 
         type = 's'; d = 0.0; s = st;
     }
 
-    ObjToken(const char *st)  
+    Tobj(const char *st)  
     {
         type = 's'; d = 0.0; s = st;
     }
@@ -263,7 +263,7 @@ struct ObjToken
 
 
 //언어 실행을 위해 이용하는 가상 메모리 클래스
-class MyMemory 
+class Mymemory 
 {
     private:
     vector<double> mem;

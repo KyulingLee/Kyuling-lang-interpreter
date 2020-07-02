@@ -12,21 +12,21 @@
 
 //심볼 테이블
 //글로벌용 테이블
-vector<SymbolTable> GlobalTable;           
+vector<SymTbl> GlobalTable;           
 //로컬용 테이블
-vector<SymbolTable> LocalTable;           
+vector<SymTbl> LocalTable;           
 //로컬 테이블 시작 위치
 int startLocalTable;           		
 
 //심볼 테이블에 등록하는 함수
-int enter(SymbolTable& tb, SymbolKind kind) 
+int enter(SymTbl& tb, SymKind kind) 
 {
     int n, mem_size;
     bool isLocal = isLocalName(tb.name, kind);
     //로컬 변수의 주소 관리하는 녀석
     extern int localAdrs;                              
     //가상머신의 메모리
-    extern MyMemory Dmem;                                          
+    extern Mymemory Dmem;                                          
 
     ////확인하는 부분
     mem_size = tb.aryLen;
@@ -103,7 +103,7 @@ void setStartLocalTable()
 }
 
 //로컬쪽의 이름이면 true를 넘긴다
-bool isLocalName(const string& name, SymbolKind kind) 
+bool isLocalName(const string& name, SymKind kind) 
 {
     if (kind == paraId) 
         return true;
@@ -166,7 +166,7 @@ int searchName(const string& s, int mode)
 }
 
 //반복자를 획득한다
-vector<SymbolTable>::iterator tablePointer(const CodeSet& cd)
+vector<SymTbl>::iterator tablePointer(const CodeSet& cd)
 {
     if (cd.kind == Lvar) 
         return LocalTable.begin() + cd.symNbr;           

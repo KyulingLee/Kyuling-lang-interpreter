@@ -31,9 +31,9 @@ string errorMessage(const string& a, const string& b)
 //오류 표시를 하는 함수
 //기존 cout 처리를 수정할 수 있다. ㅇㅅㅇ;;
 //함수 선언에서 디폴트 인수 지정을 하고 시작하였다.
-void errorExit(ObjToken a, ObjToken b, ObjToken c, ObjToken d) 
+void errorExit(Tobj a, Tobj b, Tobj c, Tobj d) 
 {
-    ObjToken ob[5];
+    Tobj ob[5];
     ob[1] = a; 
     ob[2] = b; 
     ob[3] = c; 

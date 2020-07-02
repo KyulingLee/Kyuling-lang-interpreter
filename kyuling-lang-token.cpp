@@ -16,19 +16,19 @@ char *token_p;
 //파일 종료인지 아닌지 확인하는 플래그
 bool endOfFile_Flag;
 //소스코드 읽어들일 곳                               
-char buf[LINE_SIZE+5]; 
+char buf[LIN_SIZ+5]; 
 //입력 스트림                      
 ifstream fin;                           
 
 //문자 종류표 배열 -> 선언
-TokenKind chartype[256]; 
+TknKind chartype[256]; 
 
 //언어에서 쓰이는 어휘 종류에 대해서 대응하는 구조체
 struct KeyWord {     
     //해당하는 키워드 포인터                            
     const char *keyName;
     //대응하는 값                                     
-    TokenKind keyKind;                
+    TknKind keyKind;                
 };
 
 //키워드 테이블
@@ -132,7 +132,7 @@ void initCharType()
 //실제로는 아직 연결되지 않음.
 Token nextToken() 
 {
-    TokenKind kind;
+    TknKind kind;
     string txt = "";
 
     //파일의 마지막일 때  
@@ -240,7 +240,7 @@ void nextLine()
         return;
     
     //한 행을 읽어낸다
-    fin.getline(buf, LINE_SIZE+5);                                
+    fin.getline(buf, LIN_SIZ+5);                                
     
     //파일의 끝일 경우
     if (fin.eof()) 
@@ -252,10 +252,10 @@ void nextLine()
         return;
     }
 
-    if (strlen(buf) > LINE_SIZE)
+    if (strlen(buf) > LIN_SIZ)
     {
-        cout << "프로그램은 1줄에 " << LINE_SIZE << "문자 이내로 작성해 주세요." <<endl;
-        errorExit("프로그램은 1줄에 ", LINE_SIZE, " 문자 이내로 작성해 주세요.");
+        cout << "프로그램은 1줄에 " << LIN_SIZ << "문자 이내로 작성해 주세요." <<endl;
+        errorExit("프로그램은 1줄에 ", LIN_SIZ, " 문자 이내로 작성해 주세요.");
     }
 
     if (++srcLineno > MAX_LINE)
@@ -290,7 +290,7 @@ void fileOpen(char *fname)
 }
 
 //토큰 종류별로 설정할 것이 있으면 설정한다.
-TokenKind getKind(const string& s) 
+TknKind getKind(const string& s) 
 {
     for (int i=0; KeyWordTable[i].keyKind != END_KeyList; i++) 
     {

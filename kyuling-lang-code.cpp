@@ -34,7 +34,7 @@ bool return_Flag;
 //종료문 제어
 bool exit_Flag;                     
 //가상메모리
-MyMemory Dmem;                                                    
+Mymemory Dmem;                                                    
 //문자열 리터럴을 저장하는 벡터
 vector<string> strLITERAL;                             
 //수치 리터럴을 저장하는 백터
@@ -42,7 +42,7 @@ vector<double> nbrLITERAL;
 //구문검사용 -> 검사 되면 참으로 바꿔서 처리함.
 bool syntaxCheck_mode = false;                          
 //글로벌한 심볼 테이블
-extern vector<SymbolTable> GlobalTable;                        
+extern vector<SymTbl> GlobalTable;                        
 
 //stl에 있는 stack을 감싸서 처리하는 클래스
 class MyStack 
@@ -479,7 +479,7 @@ void statement()
 //블록 끝까지 문을 실행할 때 이용하는 함수
 void block()
 {
-    TokenKind k;
+    TknKind k;
     
     //break, return, exit문일 경우에는 종료 처리를 한다.
     while (!break_Flag && !a && !exit_Flag) 
@@ -526,7 +526,7 @@ void expression()
 //n에 대해서 우선 처리를 진행한다.
 void term(int n) 
 {
-    TokenKind op;
+    TknKind op;
     if (n == 7) 
     { 
         factor(); 
@@ -555,7 +555,7 @@ void term(int n)
 //인자 처리 함수.
 void factor() 
 {
-    TokenKind kd = code.kind;
+    TknKind kd = code.kind;
 
     //구문 체크 처리를 한다.
     if (syntaxCheck_mode) 
@@ -649,7 +649,7 @@ void factor()
 }
 
 //이항 연산자의 우선순위 처리
-int opOrder(TokenKind kd) 
+int opOrder(TknKind kd) 
 {
     switch (kd) 
     {
@@ -692,7 +692,7 @@ int opOrder(TokenKind kd)
 }
 
 //이항 연산 처리
-void binaryExpression(TokenKind op) 
+void binaryExpression(TknKind op) 
 {
     //뽑아오는 순서 주의!!!!
     double d = 0, d2 = stk.pop(), d1 = stk.pop();
@@ -924,7 +924,7 @@ void functionExec(int fncNbr)
 }
 
 //내장 함수를 검사한다.
-void systemFunctionExecSyntax(TokenKind kd)
+void systemFunctionExecSyntax(TknKind kd)
 {
     switch (kd) 
     {
@@ -964,7 +964,7 @@ void systemFunctionExecSyntax(TokenKind kd)
 }
 
 //내장 함수를 실행하는 함수
-void systemFunctionExec(TokenKind kd)
+void systemFunctionExec(TknKind kd)
 {
     double d;
     string s;
@@ -1022,38 +1022,41 @@ void systemFunctionExec(TokenKind kd)
 // 단순 변수 또는 배열 요소의 주소를 반환한다
 int getMemoryAddress(const CodeSet& cd)
 {
-    int adr=0, index, len;
+    int adr = 0, index, len;
     double d;
 
     adr = getTopAddress(cd);
-    len = tablePointer(cd)->aryLen;
+    len = tableP(cd)->aryLen;
     code = nextCode();
-    //비배열 변수 -> 그냥 주소 반환
-    if (len == 0) 
-        return adr;        
+
+    //비배열 변수 -> 그냥 주소 변환
+    if (len == 0)
+        return adr;
 
     d = getExpression('[', ']');
 
     //첨자 오류
     if ((int)d != d)
     {
-        cout << "첨자는 끝수가 없는 수치로 지정해 주세요." << endl; 
+        cout << "첨자는 끝수가 없는 수치로 지정해 주세요." << endl;
         errorExit("첨자는 끝수가 없는 수치로 지정해 주세요.");
     }
+
     //구문 검사 모드 -> 그냥 주소 반환
-    if (syntaxCheck_mode) 
-        return adr;                    
+    if (syntaxCheck_mode)
+        return adr;
 
-    index = (int) d;
-    line = cd.jmpAdrs; 
-    cd = firstCode(line);
-    if (cd.kind ==Elif || cd.kind==Else) 
-        continue;
-    if (cd.kind == End) 
-        break;
+    index = (int)d;
 
-    //첨자를 가산해서 반환
-    return adr + index;	
+    //첨자 범위 벗어날 경우
+    if (index < 0 || len <= index)
+    {
+        cout << index << " 는 첨자 범위 밖입니다 (첨자범위: 0-" << len - 1 << ")" << endl;
+        errorExit(index, "  는 첨자 범위 밖입니다(첨자범위:0-", len - 1, ")");
+    }
+
+    return adr + index;
+    
  }
 
 // 변수의 시작 주소(배열일 때도 그 시작 주소)를 반환한다
@@ -1082,13 +1085,18 @@ int endlineOfIf(int line)
     char *save = code_ptr;
 
     cd = firstCode(line);
-    for (;;) 
-    {
-        if (index < 0 || len <= index)
-        {
-            errorExit(index, "  는 첨자 범위 밖입니다(첨자범위:0-", len-1, ")");
-        }
-    } 	
+
+    for (;;) {
+
+        line = cd.jmpAdrs;
+        cd = firstCode(line);
+
+        if (cd.kind == Elif || cd.kind == Else) 
+            continue;
+
+        if (cd.kind == End) 
+            break;
+    }
 
     code_ptr = save;
     return line;
@@ -1105,9 +1113,9 @@ void checkEofLine()
 }
 
 //특정 라인 행의 시작 코드를 진행
-TokenKind lookCode(int line) 
+TknKind lookCode(int line) 
 {
-    return (TokenKind)(unsigned char)intercode[line][0];
+    return (TknKind)(unsigned char)intercode[line][0];
 }
 
 //확인부쪽 코드를 확인 후에 다음을 진행.
@@ -1145,14 +1153,14 @@ CodeSet firstCode(int line)
 //다음 코드를 획득하는 함수
 CodeSet nextCode() 			
 {
-    TokenKind kd;
+    TknKind kd;
     short int jmpAdrs, tblNbr;
 
     //코드가 마지막이면 종료
     if (*code_ptr == '\0') 
         return CodeSet(EofLine);
 
-    kd = (TokenKind)*UCHAR_POINT(code_ptr++);
+    kd = (TknKind)*UCHAR_POINT(code_ptr++);
 
     //이런 거 땜에 앞단계에서 전처리를....ㅠㅠㅠㅠ
     switch (kd) 
@@ -1165,25 +1173,25 @@ CodeSet nextCode()
         case Else:
             //점프할 주소를 만들어서 리턴
             jmpAdrs = *SHORT_POINT(code_ptr); 
-            code_ptr += SHORT_SIZE;
+            code_ptr += SHORT_SIZ;
             return CodeSet(kd, -1, jmpAdrs);    
         case String:
             //다음 테이블 주소 포인터를 만들어서 리턴
             tblNbr = *SHORT_POINT(code_ptr); 
-            code_ptr += SHORT_SIZE;
+            code_ptr += SHORT_SIZ;
             return CodeSet(kd, strLITERAL[tblNbr].c_str());   
         case IntNum: 
         case DblNum:	
             //수치 리터럴값에 대한 포인터를 만들어 리턴
             tblNbr = *SHORT_POINT(code_ptr); 
-            code_ptr += SHORT_SIZE;
+            code_ptr += SHORT_SIZ;
             return CodeSet(kd, nbrLITERAL[tblNbr]); 
         case Fcall: 
         case Gvar: 
         case Lvar:
             //함수 콜에 대한 주소 포인터를 만들어 리턴..
             tblNbr = *SHORT_POINT(code_ptr); 
-            code_ptr += SHORT_SIZE;
+            code_ptr += SHORT_SIZ;
             return CodeSet(kd, tblNbr, -1);        
         default:              		
             // 부속 정보가 없는 코드셋이 만들어져서 리턴...
@@ -1205,7 +1213,7 @@ void checkDataType(const CodeSet& cd)
 void setDataType(const CodeSet& cd, char typ) 
 {
     int memAdrs = getTopAddress(cd);
-    vector<SymbolTable>::iterator p = tablePointer(cd);
+    vector<SymTbl>::iterator p = tablePointer(cd);
 
     //이미 형이 결정되어 있으면 그냥 끝냄.
     if (p->dtTyp != NON_T) 
