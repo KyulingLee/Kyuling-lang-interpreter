@@ -4,3 +4,4 @@
 .vs/interpreter/v16/.suo
 .vs/interpreter/v16/Browse.VC.db
 .vs/interpreter/v16/ipch/AutoPCH/f212ad4639f72ffb/KYULING-LANG-CODE.ipch
+*.obj

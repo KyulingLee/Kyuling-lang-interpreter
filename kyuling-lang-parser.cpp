@@ -1,4 +1,4 @@
-/*
+﻿/*
  * 생성자: Kyuling Lee
  * 구문 분석(파서) 기능만을 모아놓은 소스코드
  * 분야별 소스코드를 만들면서 이 작업을 진행하는 제일 첫 파일.
@@ -336,13 +336,19 @@ void varDecl()
 void var_namechk(const Token& tk)
 {
 	if (tk.kind != Ident)
+	{
 		err_exit(err_msg(tk.text, "식별자"));
+	}
 
 	if (is_localScope() && tk.text[0] == '$')
+	{
 		err_exit("함수 내 var선언에서는 $가 붙은 이름을 지정할 수 없습니다 : ", tk.text);
+	}
 
 	if (searchName(tk.text, 'V') != -1)
+	{
 		err_exit("식별자가 중복되었습니다 : ", tk.text);
+	}
 }
 
 //변수 이름 설정
