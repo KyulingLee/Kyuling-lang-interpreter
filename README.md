@@ -1,14 +1,8 @@
 # Kyuling Language Interpreter
 
-[한글 설명](#한글설명)
 
-[English Description](#English Description)
 
-[日本語説明](#日本語説明)
-
-------
-
-#한글설명
+### 한글설명
 
 규링이 컴파일러 & 인터프리터 공부하면서 만든 인터프리터입니다.
 
@@ -26,15 +20,15 @@
 
 #### 사용 예시 - 윈도우 환경
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/2RtlPgk6P_g" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+https://www.youtube.com/embed/2RtlPgk6P_g
 
 #### 사용 예시 - 리눅스 환경
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/A9s_iZDNitQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+https://www.youtube.com/embed/A9s_iZDNitQ
 
 ------
 
-#English Description
+### English Description
 
 This is an interpreter made by Kyling Lee while studying compiler & interpreter.
 
@@ -52,15 +46,15 @@ In a window environment, Make.bat should be run using a command prompt. The VC++
 
 #### Examples - Window Environment
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/2RtlPgk6P_g" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+https://www.youtube.com/embed/2RtlPgk6P_g
 
 #### Examples - Linux Environment
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/A9s_iZDNitQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+https://www.youtube.com/embed/A9s_iZDNitQ
 
 ------
 
-#日本語説明
+### 日本語説明
 
 Kyuling Leeがコンパイラ&インタープリタを勉強しながら作ったインタープリタです。
 
@@ -76,8 +70,8 @@ Kyuling Leeがコンパイラ&インタープリタを勉強しながら作っ�
 
 #### 使用例 - Windows環境
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/2RtlPgk6P_g" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+https://www.youtube.com/embed/2RtlPgk6P_g
 
 #### 使用例 - リナックス環境
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/A9s_iZDNitQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+https://www.youtube.com/embed/A9s_iZDNitQ
