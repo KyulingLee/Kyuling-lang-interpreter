@@ -8,7 +8,7 @@
 
 ------
 
-### #한글설명
+#한글설명
 
 규링이 컴파일러 & 인터프리터 공부하면서 만든 인터프리터입니다.
 
@@ -34,7 +34,7 @@
 
 ------
 
-### #English Description
+#English Description
 
 This is an interpreter made by Kyling Lee while studying compiler & interpreter.
 
@@ -60,7 +60,7 @@ In a window environment, Make.bat should be run using a command prompt. The VC++
 
 ------
 
-### #日本語説明
+#日本語説明
 
 Kyuling Leeがコンパイラ&インタープリタを勉強しながら作ったインタープリタです。
 
